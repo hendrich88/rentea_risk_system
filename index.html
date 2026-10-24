@@ -1125,7 +1125,7 @@
       });
     }
 
-    function renderDatePeriodConfidence(minDate, maxDate, levels, selected) {
+    function renderDatePeriodConfidence(minDate, maxDate, levels, selected, levelLabel = "Confidence Level") {
       return `
           <div class="date-bar-left">
             <label for="asOfDate">Date</label>
@@ -1136,7 +1136,7 @@
                 <option value="${item.id}"${state.varPeriod === item.id ? " selected" : ""}>${escapeHtml(item.label)}</option>
               `).join("")}
             </select>
-            <label for="varConfidence">Confidence Level</label>
+            <label for="varConfidence">${escapeHtml(levelLabel)}</label>
             <select id="varConfidence">
               ${levels.map((level) => `
                 <option value="${level}"${Number(selected) === level ? " selected" : ""}>${level} %</option>
@@ -1646,7 +1646,7 @@
       const fxSum = weightedVarSum(fxItems);
       return `
         <div class="date-bar">
-          ${renderDatePeriodConfidence(minDate, maxDate, [200, 150, 100, 99, 95, 90], state.stressConfidence)}
+          ${renderDatePeriodConfidence(minDate, maxDate, [200, 150, 100, 99, 95, 90], state.stressConfidence, "Stress Level")}
           <span></span>
           <div class="date-bar-right">
             <span class="var-sum-label">Weighted Stress Test</span>
