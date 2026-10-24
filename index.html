@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rentea Risk Management System</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #ffffff;
+      --panel: #f3f5f8;
+      --panel-strong: #e8edf3;
+      --row: #ffffff;
+      --border: #dbe3ec;
+      --text: #111827;
+      --muted: #6b7280;
+      --accent: #2d6e9a;
+      --accent-soft: #dbeafe;
+      --radius: 16px;
+      --shadow: 0 10px 30px rgba(37, 99, 235, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Inter, system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.45;
+    }
+
+    .app {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 32px 24px 64px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+      background: var(--accent);
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: 12px;
+    }
+
+    h1 {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: #ffffff;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .main-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 14px 14px 0;
+      overflow-x: auto;
+    }
+
+    .main-tab,
+    .sub-tab {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .main-tab {
+      padding: 10px 16px;
+      font-size: 14px;
+      border-radius: 10px 10px 0 0;
+    }
+
+    .main-tab:hover { color: var(--text); }
+
+    .main-tab.active,
+    .main-tab.active:hover {
+      color: #ffffff;
+      background: var(--accent);
+    }
+
+    .sub-bar {
+      background: var(--row);
+      border-top: 1px solid var(--border);
+      padding: 12px 16px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .sub-tab {
+      padding: 8px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      border: 1px solid transparent;
+    }
+
+    .sub-tab:hover {
+      color: var(--text);
+      background: var(--panel);
+    }
+
+    .sub-tab.active,
+    .sub-tab.active:hover {
+      color: #ffffff;
+      background: var(--accent);
+      border-color: var(--accent);
+      box-shadow: none;
+    }
+
+    .content {
+      background: var(--row);
+      padding: 20px;
+      min-height: 420px;
+    }
+
+    .status {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .date-bar {
+      display: grid;
+      grid-template-columns: 1fr auto max-content;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 14px;
+      padding: 0 17px;
+    }
+
+    .date-bar-left,
+    .date-bar-right {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .date-bar label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .date-bar input[type="date"],
+    .date-bar select {
+      font-family: inherit;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      min-width: 170px;
+    }
+
+    .date-bar select {
+      min-width: 92px;
+      cursor: pointer;
+    }
+
+    .date-bar #varPeriod {
+      min-width: 118px;
+    }
+
+    .table-wrap {
+      overflow: auto;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+
+    .limits-table-wrap {
+      overflow: visible;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 640px;
+    }
+
+    td {
+      text-align: left;
+      padding: 13px 16px;
+      font-size: 14px;
+      color: var(--text);
+    }
+
+    tbody tr { border-bottom: 1px solid #b7c2cd; }
+    tbody tr:last-child { border-bottom: 0; }
+    tbody tr:hover { background: #eaf3fa; }
+
+    tbody tr.limit:not(.section) {
+      background: #eceff3;
+    }
+
+    tbody tr.limit:not(.section):hover {
+      background: #dbeaf6;
+    }
+
+    tr.section {
+      background: var(--accent);
+    }
+
+    tr.section td,
+    tr.section .badge,
+    tr.section .rate {
+      color: #ffffff;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    tr.section:hover {
+      background: var(--accent);
+    }
+
+    td:nth-child(3) {
+      text-align: left;
+      white-space: nowrap;
+      width: 1%;
+    }
+
+    .limits-badge {
+      display: inline-block;
+      font-size: 14px;
+      font-weight: 800;
+      padding: 5px 10px;
+      border: 1px solid #b7c2cd;
+      border-radius: 8px;
+      letter-spacing: -0.01em;
+      margin-left: -28px;
+      white-space: nowrap;
+      color: #111827;
+      background: #ffffff;
+    }
+
+    .limits-badge.ok,
+    tr.section .limits-badge.ok {
+      color: #15803d;
+      background: #d1fae5;
+    }
+
+    .limits-badge.failed,
+    tr.section .limits-badge.failed {
+      color: #b91c1c;
+      background: #fecaca;
+    }
+
+    tr.section .limits-badge {
+      margin-left: -48px;
+    }
+
+    .date-bar .limits-badge {
+      font-size: 22px;
+      font-weight: 800;
+      padding: 8px 14px;
+      justify-self: start;
+      margin-left: -12px;
+      white-space: nowrap;
+    }
+
+    .date-bar-right {
+      justify-self: start;
+      margin-left: -12px;
+    }
+
+    .var-sum-label {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text);
+      white-space: nowrap;
+    }
+
+    .var-sum-badge {
+      display: inline-block;
+      font-size: 22px;
+      font-weight: 800;
+      padding: 8px 14px;
+      color: #111827;
+      background: #dbeafe;
+      border: 1px solid #b7c2cd;
+      border-radius: 8px;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+
+    .var-mid-bar {
+      margin: 14px 0 14px;
+    }
+
+    .var-table td:nth-child(2),
+    .var-table td:nth-child(3) {
+      text-align: right;
+      white-space: nowrap;
+      width: 1%;
+      min-width: 118px;
+    }
+
+    .heat-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid;
+      font-weight: 400;
+      color: #111827;
+      white-space: nowrap;
+    }
+
+    tr.limit td:first-child {
+      font-weight: 700;
+    }
+
+    tr.expandable {
+      cursor: pointer;
+    }
+
+    tr.expandable td:first-child {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .section-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-tip {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      flex: 0 0 auto;
+    }
+
+    .info-icon {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1.5px solid currentColor;
+      background: transparent;
+      color: inherit;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 11px;
+      font-style: italic;
+      font-weight: 700;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: help;
+      padding: 0;
+    }
+
+    .info-bubble {
+      display: none;
+      position: absolute;
+      left: 50%;
+      top: calc(100% + 8px);
+      transform: translateX(-50%);
+      background: #ffffff;
+      color: #111827;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0;
+      line-height: 1.35;
+      padding: 8px 10px;
+      border-radius: 8px;
+      box-shadow: 0 8px 20px rgba(17, 24, 39, 0.18);
+      white-space: nowrap;
+      z-index: 40;
+      pointer-events: none;
+    }
+
+    .info-bubble::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -6px;
+      transform: translateX(-50%);
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-bottom: 6px solid #ffffff;
+    }
+
+    .info-tip:hover .info-bubble,
+    .info-tip:focus-within .info-bubble {
+      display: block;
+    }
+
+    tr.section .info-bubble {
+      color: #111827;
+      font-weight: 600;
+    }
+
+    tr.section.expandable .chevron {
+      margin-top: 7px;
+    }
+
+    .chevron {
+      display: inline-block;
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid currentColor;
+      transform: rotate(0deg);
+      transition: transform 0.15s ease;
+      flex: 0 0 auto;
+    }
+
+    tr.expandable.collapsed .chevron {
+      transform: rotate(-90deg);
+    }
+
+    tr.holding td:first-child {
+      padding-left: 36px;
+      font-weight: 400;
+    }
+
+    tr.holding .rate,
+    tr.holding .limits-badge {
+      font-weight: 400;
+    }
+
+    tr.holding .limits-badge {
+      margin-left: -38px;
+    }
+
+    tr.holding.hidden,
+    tr.chart-row.hidden {
+      display: none;
+    }
+
+    tr.chart-row td {
+      padding: 8px 16px 18px 48px;
+      background: #ffffff;
+    }
+
+    tr.chart-row:hover {
+      background: #ffffff;
+    }
+
+    .chart-wrap {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px 6px;
+      background: #fbfdff;
+    }
+
+    .chart-caption {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .share-chart {
+      width: 100%;
+      height: 220px;
+      display: block;
+    }
+
+    .badge {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .rate {
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .rate.ok { color: #15803d; }
+    .rate.breach { color: #dc2626; }
+
+    .placeholder {
+      display: grid;
+      place-items: center;
+      min-height: 280px;
+      color: var(--muted);
+      text-align: center;
+      gap: 8px;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+    }
+
+    .placeholder h2 {
+      color: var(--text);
+      font-size: 18px;
+      font-weight: 650;
+    }
+
+    .error {
+      color: #ff8d8d;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>RENTEA RISK MANAGEMENT SYSTEM</h1>
+    </header>
+
+    <section class="panel">
+      <nav class="main-tabs" id="mainTabs" aria-label="Typ fondu"></nav>
+      <nav class="sub-bar" id="subTabs" aria-label="Sekce"></nav>
+      <div class="content" id="content"></div>
+    </section>
+  </div>
+
+  <script>
+    const FUNDS = [
+      { id: "alternative", label: "Alternativní fond" },
+      { id: "equity", label: "Akciový fond" },
+      { id: "bond", label: "Dluhopisový fond" },
+      { id: "conservative", label: "Povinný konzervativní fond" },
+    ];
+
+    const SUBTABS = [
+      { id: "limits", label: "Limits" },
+      { id: "var", label: "Value at Risk" },
+      { id: "stress", label: "Stress Tests" },
+    ];
+
+    const DATA_URLS = [
+      "./limits.json",
+      "https://raw.githubusercontent.com/hendrich88/rentea_data/main/limits.json",
+    ];
+
+    const PORTFOLIO_URLS = [
+      "./portfolio_final.json",
+      "https://raw.githubusercontent.com/hendrich88/rentea_data/main/portfolio_final.json",
+    ];
+
+    const PRICE_URLS = [
+      "./prices_history_final.json",
+      "https://raw.githubusercontent.com/hendrich88/rentea_data/main/prices_history_final.json",
+    ];
+
+    const EMPTY_VALUES = new Set(["", "none", "null", "nan", "undefined"]);
+
+    const FALLBACK_LIMITS = [
+      { code: "5_1", name: "5.1 Cenné papíry jedné osoby (kromě ČR nebo ČNB)", limit_type: null, limit_rate: null },
+      { code: "5_1_a", name: "a) Investiční cenné papíry < 5%", limit_type: "max", limit_rate: 0.05 },
+      { code: "5_1_b_1", name: "b) 1) Investiční cenné papíry >= 5%", limit_type: "max", limit_rate: 0.1 },
+      { code: "5_1_b_2", name: "b) 2)Celkem investiční cenné papíry", limit_type: "max total", limit_rate: 0.4 },
+      { code: "5_1_c", name: "c) Dluhopisy", limit_type: "max", limit_rate: 0.2 },
+      { code: "5_1_d", name: "d) Vklady u banky", limit_type: "max", limit_rate: 0.1 },
+      { code: "5_1_f", name: "f) Součet a), d), e) vůči jedné osobě", limit_type: "max", limit_rate: 0.1 },
+      { code: "5_1_g", name: "g) Součet a), b), c), d), e)", limit_type: "max", limit_rate: 0.35 },
+      { code: "5_3", name: "5.3 Cenné papíry kolektivního investování", limit_type: null, limit_rate: null },
+      { code: "5_3_a", name: "a) ICP vydávané jedním fondem", limit_type: "max", limit_rate: 0.2 },
+      { code: "5_3_b", name: "b) ICP vydávané fondy celkem", limit_type: "max", limit_rate: 0.8 },
+      { code: "5_3_c", name: "c) ICP speciálních fondů v rámci b)", limit_type: "max", limit_rate: 0.3 },
+      { code: "5_3_d", name: "d) ICP speciálních fondů nekopírujících index v rámci c)", limit_type: "max", limit_rate: 0.1 },
+      { code: "5_3_e", name: "e) Součet investic podle b) vůči jedné osobě", limit_type: "max", limit_rate: 0.35 },
+    ];
+
+    const state = {
+      fund: "equity",
+      subtab: "limits",
+      limits: [],
+      portfolio: [],
+      prices: [],
+      selectedDate: "",
+      varConfidence: 99,
+      stressConfidence: 100,
+      varPeriod: "month",
+      source: "",
+    };
+
+    function isEmptyValue(value) {
+      if (value === null || value === undefined) return true;
+      if (typeof value === "number" && Number.isNaN(value)) return true;
+      const text = String(value).trim();
+      return EMPTY_VALUES.has(text.toLowerCase());
+    }
+
+    function displayValue(value) {
+      return isEmptyValue(value) ? "" : String(value);
+    }
+
+    function displayRate(value) {
+      if (isEmptyValue(value)) return "";
+      const num = typeof value === "number" ? value : Number(String(value).replace(",", "."));
+      if (Number.isFinite(num)) {
+        return `${(num * 100).toLocaleString("cs-CZ", {
+          minimumFractionDigits: Number.isInteger(num * 100) ? 0 : 1,
+          maximumFractionDigits: 2,
+        })} %`;
+      }
+      return String(value);
+    }
+
+    function formatSharePct(share) {
+      const num = Number(share);
+      if (!Number.isFinite(num)) return "";
+      return `${(num * 100).toLocaleString("cs-CZ", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })} %`;
+    }
+
+    function isSectionRow(row) {
+      const code = String(row.code || "");
+      const name = String(row.name || "");
+      return code === "5_1" || code === "5_3" || /^5\.[13]\b/.test(name);
+    }
+
+    function isARow(row) {
+      const code = String(row.code || "");
+      const name = String(row.name || "");
+      return code === "5_1_a" || /a\)\s*Investiční cenné papíry\s*<\s*5%/i.test(name);
+    }
+
+    function isB1Row(row) {
+      const code = String(row.code || "");
+      const name = String(row.name || "");
+      return code === "5_1_b_1" || /b\)\s*1\).*>=\s*5%/i.test(name);
+    }
+
+    function isB2Row(row) {
+      const code = String(row.code || "");
+      const name = String(row.name || "");
+      return code === "5_1_b_2" || /b\)\s*2\)/i.test(name);
+    }
+
+    function isCRow(row) {
+      const code = String(row.code || "");
+      const name = String(row.name || "");
+      return code === "5_1_c" || /c\)\s*Dluhopisy/i.test(name);
+    }
+
+    function isDRow(row) {
+      const code = String(row.code || "");
+      const name = String(row.name || "");
+      return code === "5_1_d" || /d\)\s*Vklady/i.test(name);
+    }
+
+    function isERow(row) {
+      return String(row.code || "") === "5_1_e";
+    }
+
+    function isFRow(row) {
+      const code = String(row.code || "");
+      const name = String(row.name || "");
+      return code === "5_1_f" || /f\)\s*Součet a\),\s*d\),\s*e\)/i.test(name);
+    }
+
+    function isGRow(row) {
+      const code = String(row.code || "");
+      const name = String(row.name || "");
+      return code === "5_1_g" || /g\)\s*Součet a\),\s*b\),\s*c\),\s*d\),\s*e\)/i.test(name);
+    }
+
+    function is53ARow(row) {
+      return String(row.code || "") === "5_3_a";
+    }
+
+    function is53BRow(row) {
+      return String(row.code || "") === "5_3_b";
+    }
+
+    function is53ERow(row) {
+      return String(row.code || "") === "5_3_e";
+    }
+
+    function toDateKey(value) {
+      const num = Number(value);
+      if (!Number.isFinite(num)) return "";
+      const millis = num > 1e12 ? num : num * 1000;
+      const date = new Date(millis);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toISOString().slice(0, 10);
+    }
+
+    function portfolioDates() {
+      const dates = new Set();
+      for (const item of state.portfolio) {
+        const key = toDateKey(item.date);
+        if (key) dates.add(key);
+      }
+      return [...dates].sort();
+    }
+
+    function latestPortfolioDate() {
+      const dates = portfolioDates();
+      return dates[dates.length - 1] || "";
+    }
+
+    function portfolioForSelectedDate() {
+      if (!state.selectedDate) return state.portfolio;
+      return state.portfolio.filter((item) => toDateKey(item.date) === state.selectedDate);
+    }
+
+    function stockHoldings() {
+      return portfolioForSelectedDate().filter((item) => String(item.ticker_type || "").toLowerCase() === "stock");
+    }
+
+    function fundHoldings() {
+      return portfolioForSelectedDate().filter((item) => String(item.ticker_type || "").toLowerCase() === "fund");
+    }
+
+    function depositHoldings() {
+      return portfolioForSelectedDate().filter((item) => {
+        const type = String(item.ticker_type || "").toLowerCase();
+        return type === "deposit" || type === "cash" || type === "bank";
+      });
+    }
+
+    function bondHoldings() {
+      return portfolioForSelectedDate().filter((item) => {
+        const type = String(item.ticker_type || "").toLowerCase();
+        return type === "bond" || type === "dluhopis" || type === "debt";
+      });
+    }
+
+    function eHoldings() {
+      return portfolioForSelectedDate().filter((item) => {
+        const type = String(item.ticker_type || "").toLowerCase();
+        return type === "e" || type === "money_market" || type === "mmi" || type === "claim" || type === "receivable";
+      });
+    }
+
+    function sumShares(items) {
+      return items.reduce((sum, item) => sum + (Number(item.share) || 0), 0);
+    }
+
+    function groupByCounterparty(items) {
+      const grouped = new Map();
+      for (const item of items) {
+        const name = String(item.counterparty_name || "").trim();
+        if (!name) continue;
+        const prev = grouped.get(name) || { counterparty_name: name, share: 0 };
+        prev.share += Number(item.share) || 0;
+        grouped.set(name, prev);
+      }
+      return [...grouped.values()];
+    }
+
+    function counterpartiesForF() {
+      const fromAandD = [...stocksBelowFivePercent(), ...depositHoldings()]
+        .filter((item) => String(item.ticker_type || "").toLowerCase() === "stock");
+      return withChartIsins(groupByCounterparty(fromAandD), fromAandD);
+    }
+
+    function withChartIsins(grouped, sourceItems) {
+      return grouped.map((group) => ({
+        ...group,
+        chartIsins: [...new Set(sourceItems
+          .filter((item) => item.counterparty_name === group.counterparty_name && item.isin)
+          .map((item) => item.isin))],
+      }));
+    }
+
+    function counterpartiesForG() {
+      const source = [
+        ...stocksBelowFivePercent(),
+        ...stocksAtLeastFivePercent(),
+        ...bondHoldings(),
+        ...depositHoldings(),
+        ...eHoldings(),
+      ];
+      return withChartIsins(groupByCounterparty(source), source);
+    }
+
+    function counterpartiesFor53E() {
+      const funds = fundHoldings();
+      return withChartIsins(groupByCounterparty(funds), funds);
+    }
+
+    function stocksBelowFivePercent() {
+      return stockHoldings().filter((item) => Number(item.share) < 0.05);
+    }
+
+    function stocksAtLeastFivePercent() {
+      return stockHoldings().filter((item) => Number(item.share) >= 0.05);
+    }
+
+    function stocksOverTenPercent() {
+      return stockHoldings().filter((item) => Number(item.share) >= 0.10);
+    }
+
+    function withinLimit(share, limitRate) {
+      const value = Number(share);
+      const limit = Number(limitRate);
+      if (!Number.isFinite(value) || !Number.isFinite(limit)) return true;
+      return value <= limit;
+    }
+
+    function rateStatusForItems(items, limitRate) {
+      if (!Number.isFinite(Number(limitRate))) return "";
+      if (!items.length) return "ok";
+      return items.every((item) => withinLimit(item.share, limitRate)) ? "ok" : "breach";
+    }
+
+    function holdingRows(items, parentId, nameField, parentLimit, withChart = false) {
+      const rows = [];
+      items.forEach((item, index) => {
+        const isins = (item.chartIsins && item.chartIsins.length)
+          ? item.chartIsins.filter(Boolean)
+          : (item.isin ? [String(item.isin).trim()] : []);
+        const groupId = withChart && isins.length ? `chart-${parentId}-${index}` : "";
+        const classes = ["holding", "hidden"];
+        if (groupId) classes.push("expandable", "collapsed");
+        rows.push(renderTableRow({
+          name: item[nameField] || item.ticker_name,
+          limit_type: "",
+          shareDisplay: formatSharePct(item.share),
+        }, classes.join(" "), {
+          parent: parentId,
+          group: groupId,
+          hidden: true,
+          rateStatus: Number.isFinite(Number(parentLimit))
+            ? (withinLimit(item.share, parentLimit) ? "ok" : "breach")
+            : "",
+        }));
+        if (groupId) {
+          const label = item.ticker_name || item[nameField] || "";
+          const isinLabel = isins.join(", ");
+          const caption = `${label} · ${isinLabel} · limit ${Math.round(Number(parentLimit) * 100)} %`;
+          rows.push(`
+            <tr class="chart-row hidden" data-parent="${escapeHtml(groupId)}" hidden>
+              <td colspan="3">
+                <div class="chart-wrap">
+                  <p class="chart-caption">${escapeHtml(caption)}</p>
+                  <canvas class="share-chart" data-isins="${escapeHtml(isins.join(","))}" data-limit="${Number(parentLimit)}"></canvas>
+                </div>
+              </td>
+            </tr>
+          `);
+        }
+      });
+      return rows;
+    }
+
+    const VAR_Z_SCORES = {
+      90: 1.2815515655446004,
+      95: 1.6448536269514722,
+      99: 2.3263478740408408,
+    };
+    const VAR_PERIODS = [
+      { id: "month", days: 22, label: "1 Month", titleInterval: "měsíční interval" },
+      { id: "10d", days: 10, label: "10 Days", titleInterval: "10denní interval" },
+      { id: "1d", days: 1, label: "1 Day", titleInterval: "denní interval" },
+    ];
+    const TOTAL_ASSETS = 11704226000;
+    const FX_VAR_CURRENCIES = [
+      { code: "EUR", label: "EUR", priceKey: "EURCZK" },
+      { code: "GBP", label: "GBP", priceKey: "GBP" },
+      { code: "USD", label: "USD", priceKey: "USDCZK" },
+    ];
+
+    function uniqueHoldingsByIsin() {
+      const byIsin = new Map();
+      for (const item of portfolioForSelectedDate()) {
+        const isin = String(item.isin || "").trim();
+        if (!isin) continue;
+        const prev = byIsin.get(isin);
+        if (prev) {
+          prev.value += Number(item.value) || 0;
+          continue;
+        }
+        byIsin.set(isin, {
+          ...item,
+          value: Number(item.value) || 0,
+        });
+      }
+      return [...byIsin.values()];
+    }
+
+    function priceSeriesForIsin(isin, endDate) {
+      const series = [];
+      for (const row of state.prices) {
+        const day = String(row.Date || "").slice(0, 10);
+        if (!day || (endDate && day > endDate)) continue;
+        const value = Number(row[isin]);
+        if (!Number.isFinite(value) || value <= 0) continue;
+        series.push(value);
+      }
+      return series;
+    }
+
+    function logReturns(prices) {
+      const returns = [];
+      for (let i = 1; i < prices.length; i += 1) {
+        const ratio = prices[i] / prices[i - 1];
+        if (!Number.isFinite(ratio) || ratio <= 0) continue;
+        if (ratio > 2 || ratio < 0.5) continue;
+        returns.push(Math.log(ratio));
+      }
+      return returns;
+    }
+
+    function varZScore() {
+      return VAR_Z_SCORES[state.varConfidence] || VAR_Z_SCORES[99];
+    }
+
+    function selectedVarPeriod() {
+      return VAR_PERIODS.find((item) => item.id === state.varPeriod) || VAR_PERIODS[0];
+    }
+
+    function varHorizonDays() {
+      return selectedVarPeriod().days;
+    }
+
+    function varSectionTitle(kind) {
+      return `${kind} VaR`;
+    }
+
+    function parametricVarMonthly(returns) {
+      if (returns.length < 2) return NaN;
+      const mean = returns.reduce((sum, value) => sum + value, 0) / returns.length;
+      const variance = returns.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (returns.length - 1);
+      const sigma = Math.sqrt(variance);
+      const horizon = varHorizonDays();
+      return -mean * horizon + varZScore() * sigma * Math.sqrt(horizon);
+    }
+
+    function formatVarPct(value) {
+      const num = Number(value);
+      if (!Number.isFinite(num)) return "–";
+      return `${(num * 100).toLocaleString("cs-CZ", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })} %`;
+    }
+
+    function varRowsForSelectedDate() {
+      const endDate = state.selectedDate || latestPortfolioDate();
+      return uniqueHoldingsByIsin().map((item) => {
+        const isin = String(item.isin || "").trim();
+        const absolute = parametricVarMonthly(logReturns(priceSeriesForIsin(isin, endDate)));
+        return toVarRow(item.ticker_name || isin, absolute, Number(item.value) || 0);
+      });
+    }
+
+    function normalizeCurrency(value) {
+      const text = String(value || "").trim().toUpperCase();
+      if (text === "EUR" || text === "USD") return text;
+      if (text === "GBP" || text === "GBPP") return "GBP";
+      return "";
+    }
+
+    function currencyValueSums() {
+      const sums = { GBP: 0, EUR: 0, USD: 0 };
+      for (const item of portfolioForSelectedDate()) {
+        const code = normalizeCurrency(item.currency);
+        if (!code) continue;
+        sums[code] += Number(item.value) || 0;
+      }
+      return sums;
+    }
+
+    function toVarRow(name, absolute, value) {
+      const weighted = Number.isFinite(absolute)
+        ? absolute * (Number(value) || 0) / TOTAL_ASSETS
+        : NaN;
+      return {
+        name,
+        absolute,
+        weighted,
+        absoluteDisplay: formatVarPct(absolute),
+        weightedDisplay: formatVarPct(weighted),
+      };
+    }
+
+    function fxVarRowsForSelectedDate() {
+      const endDate = state.selectedDate || latestPortfolioDate();
+      const sums = currencyValueSums();
+      return FX_VAR_CURRENCIES.map((item) => {
+        const absolute = parametricVarMonthly(logReturns(priceSeriesForIsin(item.priceKey, endDate)));
+        return toVarRow(item.label, absolute, sums[item.code] || 0);
+      });
+    }
+
+    function fxKeyForCurrency(currency) {
+      const raw = String(currency || "").trim();
+      if (raw === "GBPp") return "GBPp";
+      const code = normalizeCurrency(currency);
+      const found = FX_VAR_CURRENCIES.find((item) => item.code === code);
+      return found ? found.priceKey : "";
+    }
+
+    function lastFxRate(currency, endDate) {
+      const key = fxKeyForCurrency(currency);
+      if (!key) return 1;
+      let last = NaN;
+      for (const row of state.prices) {
+        const day = String(row.Date || "").slice(0, 10);
+        if (!day || (endDate && day > endDate)) continue;
+        const value = Number(row[key]);
+        if (Number.isFinite(value) && value > 0) last = value;
+      }
+      return last;
+    }
+
+    function cleanedPriceSeries(prices) {
+      const cleaned = [];
+      for (const price of prices) {
+        if (!(price > 0)) continue;
+        if (cleaned.length) {
+          const ratio = price / cleaned[cleaned.length - 1];
+          if (!Number.isFinite(ratio) || ratio <= 0 || ratio > 2 || ratio < 0.5) continue;
+        }
+        cleaned.push(price);
+      }
+      return cleaned;
+    }
+
+    function rollingSimpleReturns(prices, horizon) {
+      const returns = [];
+      const step = Math.max(1, Number(horizon) || 1);
+      for (let i = step; i < prices.length; i += 1) {
+        const prev = prices[i - step];
+        const curr = prices[i];
+        if (!(prev > 0) || !(curr > 0)) continue;
+        returns.push({
+          absolute: (curr - prev) / prev,
+          priceBefore: prev,
+        });
+      }
+      return returns;
+    }
+
+    function historicalReturnQuantile(returns, confidence) {
+      if (!returns.length) return null;
+      const sorted = [...returns].sort((a, b) => a.absolute - b.absolute);
+      const level = Number(confidence || 99);
+      if (level > 100) {
+        const worst = sorted[0];
+        return { ...worst, absolute: worst.absolute * (level / 100) };
+      }
+      const tail = (100 - level) / 100;
+      let rank = Math.round(tail * sorted.length);
+      if (rank < 1) rank = 1;
+      if (rank > sorted.length) rank = sorted.length;
+      return sorted[rank - 1];
+    }
+
+    function stressRowsForSelectedDate() {
+      const endDate = state.selectedDate || latestPortfolioDate();
+      const horizon = varHorizonDays();
+      const confidence = Number(state.stressConfidence) || 100;
+      return uniqueHoldingsByIsin().map((item) => {
+        const isin = String(item.isin || "").trim();
+        const rawPrices = priceSeriesForIsin(isin, endDate);
+        const prices = cleanedPriceSeries(rawPrices);
+        const selected = historicalReturnQuantile(rollingSimpleReturns(prices, horizon), confidence);
+        const absolute = selected ? selected.absolute : NaN;
+        const lagIndex = rawPrices.length - 1 - horizon;
+        const priceBefore = lagIndex >= 0 ? rawPrices[lagIndex] : NaN;
+        const lastFx = lastFxRate(item.currency, endDate);
+        const amount = Number(item.amount);
+        const weighted = Number.isFinite(absolute) && amount > 0 && priceBefore > 0 && lastFx > 0
+          ? (absolute * amount * priceBefore * lastFx) / TOTAL_ASSETS
+          : NaN;
+        return {
+          name: item.ticker_name || isin,
+          absolute,
+          weighted,
+          absoluteDisplay: formatVarPct(absolute),
+          weightedDisplay: formatVarPct(weighted),
+        };
+      });
+    }
+
+    function stressSectionTitle(kind = "Stress Test") {
+      return kind;
+    }
+
+    function fxStressRowsForSelectedDate() {
+      const endDate = state.selectedDate || latestPortfolioDate();
+      const horizon = varHorizonDays();
+      const confidence = Number(state.stressConfidence) || 100;
+      const holdings = uniqueHoldingsByIsin();
+      return FX_VAR_CURRENCIES.map((ccy) => {
+        const fxSeries = cleanedPriceSeries(priceSeriesForIsin(ccy.priceKey, endDate));
+        const selected = historicalReturnQuantile(rollingSimpleReturns(fxSeries, horizon), confidence);
+        const absolute = selected ? selected.absolute : NaN;
+        let exposure = 0;
+        for (const item of holdings) {
+          if (normalizeCurrency(item.currency) !== ccy.code) continue;
+          const rawPrices = priceSeriesForIsin(String(item.isin || "").trim(), endDate);
+          const lagIndex = rawPrices.length - 1 - horizon;
+          const priceBefore = lagIndex >= 0 ? rawPrices[lagIndex] : NaN;
+          const lastFx = lastFxRate(item.currency, endDate);
+          const amount = Number(item.amount);
+          if (amount > 0 && priceBefore > 0 && lastFx > 0) {
+            exposure += amount * priceBefore * lastFx;
+          }
+        }
+        const weighted = Number.isFinite(absolute) && exposure > 0
+          ? (absolute * exposure) / TOTAL_ASSETS
+          : NaN;
+        return {
+          name: ccy.label,
+          absolute,
+          weighted,
+          absoluteDisplay: formatVarPct(absolute),
+          weightedDisplay: formatVarPct(weighted),
+        };
+      });
+    }
+
+    function renderDatePeriodConfidence(minDate, maxDate, levels, selected) {
+      return `
+          <div class="date-bar-left">
+            <label for="asOfDate">Date</label>
+            <input id="asOfDate" type="date" value="${escapeHtml(state.selectedDate)}" min="${escapeHtml(minDate)}" max="${escapeHtml(maxDate)}" />
+            <label for="varPeriod">Period</label>
+            <select id="varPeriod">
+              ${VAR_PERIODS.map((item) => `
+                <option value="${item.id}"${state.varPeriod === item.id ? " selected" : ""}>${escapeHtml(item.label)}</option>
+              `).join("")}
+            </select>
+            <label for="varConfidence">Confidence Level</label>
+            <select id="varConfidence">
+              ${levels.map((level) => `
+                <option value="${level}"${Number(selected) === level ? " selected" : ""}>${level} %</option>
+              `).join("")}
+            </select>
+          </div>`;
+    }
+
+    function weightedVarSum(items) {
+      return items.reduce((sum, item) => (
+        Number.isFinite(item.weighted) ? sum + item.weighted : sum
+      ), 0);
+    }
+
+    function numericRange(items, key) {
+      const values = items.map((item) => item[key]).filter((value) => Number.isFinite(value));
+      if (!values.length) return { min: NaN, max: NaN };
+      return { min: Math.min(...values), max: Math.max(...values) };
+    }
+
+    function mixChannel(from, to, t) {
+      return Math.round(from + (to - from) * t);
+    }
+
+    function heatColors(value, min, max, invert = false) {
+      if (!Number.isFinite(value) || !Number.isFinite(min) || !Number.isFinite(max) || min === max) {
+        return { bg: "#f3f4f6", border: "#d1d5db" };
+      }
+      let t = Math.min(1, Math.max(0, (value - min) / (max - min)));
+      if (invert) t = 1 - t;
+      const red = [253, 228, 226];
+      const yellow = [255, 247, 214];
+      const green = [220, 243, 226];
+      const from = t < 0.5 ? red : yellow;
+      const to = t < 0.5 ? yellow : green;
+      const u = t < 0.5 ? t * 2 : (t - 0.5) * 2;
+      const r = mixChannel(from[0], to[0], u);
+      const g = mixChannel(from[1], to[1], u);
+      const b = mixChannel(from[2], to[2], u);
+      return {
+        bg: `rgb(${r}, ${g}, ${b})`,
+        border: `rgb(${mixChannel(r, 160, 0.28)}, ${mixChannel(g, 160, 0.28)}, ${mixChannel(b, 160, 0.28)})`,
+      };
+    }
+
+    function heatBadge(label, value, range, invert = false) {
+      const colors = heatColors(value, range.min, range.max, invert);
+      return `<span class="rate heat-badge" style="background:${colors.bg};border-color:${colors.border}">${escapeHtml(label)}</span>`;
+    }
+
+    function sumHeatBadge(label, value, green, red) {
+      const colors = heatColors(value, red, green);
+      return `<span class="var-sum-badge" style="background:${colors.bg};border-color:${colors.border}">${escapeHtml(label)}</span>`;
+    }
+
+    function renderVarSection(title, groupId, items, withHeat = false, invertHeat = false) {
+      const absRange = withHeat ? numericRange(items, "absolute") : null;
+      const wtdRange = withHeat ? numericRange(items, "weighted") : null;
+      const sectionClasses = ["limit", "section"];
+      if (items.length) sectionClasses.push("expandable");
+      const groupAttr = items.length ? ` data-group="${escapeHtml(groupId)}"` : "";
+      return [
+        `<tr class="${sectionClasses.join(" ")}"${groupAttr}>
+          <td><span class="chevron" aria-hidden="true"></span><span>${escapeHtml(title)}</span></td>
+          <td>Absolute</td>
+          <td>Weighted</td>
+        </tr>`,
+        ...items.map((item) => `
+          <tr class="holding" data-parent="${escapeHtml(groupId)}">
+            <td>${escapeHtml(item.name)}</td>
+            <td>${withHeat
+              ? heatBadge(item.absoluteDisplay, item.absolute, absRange, invertHeat)
+              : `<span class="rate">${escapeHtml(item.absoluteDisplay)}</span>`}</td>
+            <td>${withHeat
+              ? heatBadge(item.weightedDisplay, item.weighted, wtdRange, invertHeat)
+              : `<span class="rate">${escapeHtml(item.weightedDisplay)}</span>`}</td>
+          </tr>
+        `),
+      ];
+    }
+
+    function addDays(dateKey, days) {
+      const date = new Date(`${dateKey}T00:00:00Z`);
+      date.setUTCDate(date.getUTCDate() + days);
+      return date.toISOString().slice(0, 10);
+    }
+
+    function seriesForIsins(isins, endDate) {
+      const keys = isins.map((isin) => `share_${isin}`);
+      const available = [];
+      for (const row of state.prices) {
+        const day = String(row.Date || "").slice(0, 10);
+        if (!day || (endDate && day > endDate)) continue;
+        let sum = 0;
+        let hasValue = false;
+        for (const key of keys) {
+          const value = Number(row[key]);
+          if (!Number.isFinite(value) || value === 0) continue;
+          sum += value;
+          hasValue = true;
+        }
+        if (!hasValue) continue;
+        available.push({ date: day, value: sum });
+      }
+      if (!available.length) return [];
+      const lastDate = available[available.length - 1].date;
+      const startDate = addDays(lastDate, -365);
+      return available.filter((point) => point.date >= startDate);
+    }
+
+    function mapX(index, count, left, width) {
+      if (count <= 1) return left + width / 2;
+      return left + (index / (count - 1)) * width;
+    }
+
+    function mapY(value, min, max, top, height) {
+      const span = max - min || 1;
+      return top + (1 - (value - min) / span) * height;
+    }
+
+    function drawShareChart(canvas) {
+      const isins = String(canvas.dataset.isins || canvas.dataset.isin || "")
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean);
+      const limit = Number(canvas.dataset.limit);
+      const endDate = state.selectedDate || latestPortfolioDate();
+      const points = seriesForIsins(isins, endDate);
+      const ratio = window.devicePixelRatio || 1;
+      const cssWidth = canvas.clientWidth || 800;
+      const cssHeight = canvas.clientHeight || 220;
+      canvas.width = Math.floor(cssWidth * ratio);
+      canvas.height = Math.floor(cssHeight * ratio);
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+      const left = 52;
+      const right = 16;
+      const top = 16;
+      const bottom = 32;
+      const width = cssWidth - left - right;
+      const height = cssHeight - top - bottom;
+
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "12px Inter, system-ui, sans-serif";
+      if (!points.length) {
+        ctx.fillText("Pro toto ISIN a období nejsou data share.", left, top + 24);
+        return;
+      }
+
+      const values = points.map((point) => point.value);
+      if (Number.isFinite(limit)) values.push(limit);
+      let min = Math.min(...values, 0);
+      let max = Math.max(...values);
+      const pad = (max - min) * 0.12 || 0.01;
+      min = Math.max(0, min - pad);
+      max += pad;
+
+      const coords = points.map((point, index) => ({
+        x: mapX(index, points.length, left, width),
+        y: mapY(point.value, min, max, top, height),
+        value: point.value,
+      }));
+
+      const limitY = Number.isFinite(limit) ? mapY(limit, min, max, top, height) : null;
+      const yTicks = 4;
+      const xTicks = 4;
+
+      ctx.strokeStyle = "#e5eaf0";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= yTicks; i += 1) {
+        const y = top + (height * i) / yTicks;
+        ctx.beginPath();
+        ctx.moveTo(left, y);
+        ctx.lineTo(left + width, y);
+        ctx.stroke();
+        const tickValue = max - ((max - min) * i) / yTicks;
+        ctx.fillStyle = "#6b7280";
+        ctx.font = "11px Inter, system-ui, sans-serif";
+        ctx.textAlign = "right";
+        ctx.fillText(`${Math.round(tickValue * 100)} %`, left - 8, y + 4);
+      }
+      for (let i = 0; i <= xTicks; i += 1) {
+        const x = left + (width * i) / xTicks;
+        ctx.strokeStyle = "#e5eaf0";
+        ctx.beginPath();
+        ctx.moveTo(x, top);
+        ctx.lineTo(x, top + height);
+        ctx.stroke();
+      }
+
+      ctx.strokeStyle = "#6b7280";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(left, top);
+      ctx.lineTo(left, top + height);
+      ctx.lineTo(left + width, top + height);
+      ctx.stroke();
+      ctx.textAlign = "left";
+
+      if (limitY !== null) {
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(left, top, width, Math.max(0, limitY - top));
+        ctx.clip();
+        ctx.beginPath();
+        coords.forEach((point, index) => {
+          if (index === 0) ctx.moveTo(point.x, point.y);
+          else ctx.lineTo(point.x, point.y);
+        });
+        ctx.strokeStyle = "#dc2626";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.rect(left, limitY, width, Math.max(0, top + height - limitY));
+        ctx.clip();
+        ctx.beginPath();
+        coords.forEach((point, index) => {
+          if (index === 0) ctx.moveTo(point.x, point.y);
+          else ctx.lineTo(point.x, point.y);
+        });
+        ctx.strokeStyle = "#15803d";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.setLineDash([6, 4]);
+        ctx.strokeStyle = "#2d6e9a";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(left, limitY);
+        ctx.lineTo(left + width, limitY);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = "#2d6e9a";
+        ctx.font = "700 12px Inter, system-ui, sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText(`${Math.round(limit * 100)} %`, left + 6, limitY - 6);
+      }
+
+      if (limitY === null) {
+      for (let i = 1; i < coords.length; i += 1) {
+        const from = coords[i - 1];
+        const to = coords[i];
+        const segments = splitAtLimit(from, to, limit);
+        for (const segment of segments) {
+          ctx.beginPath();
+          ctx.strokeStyle = segment.value > limit ? "#dc2626" : "#15803d";
+          ctx.lineWidth = 2;
+          ctx.moveTo(segment.x1, segment.y1);
+          ctx.lineTo(segment.x2, segment.y2);
+          ctx.stroke();
+        }
+      }
+      }
+
+      ctx.fillStyle = "#6b7280";
+      ctx.font = "11px Inter, system-ui, sans-serif";
+      for (let i = 0; i <= xTicks; i += 1) {
+        const idx = Math.round((i / xTicks) * (points.length - 1));
+        const x = left + (width * i) / xTicks;
+        if (i === 0) ctx.textAlign = "left";
+        else if (i === xTicks) ctx.textAlign = "right";
+        else ctx.textAlign = "center";
+        ctx.fillText(points[idx].date, x, cssHeight - 8);
+      }
+      ctx.textAlign = "left";
+    }
+
+    function splitAtLimit(from, to, limit) {
+      if (!Number.isFinite(limit) || (from.value - limit) * (to.value - limit) >= 0) {
+        return [{
+          x1: from.x, y1: from.y, x2: to.x, y2: to.y,
+          value: (from.value + to.value) / 2,
+        }];
+      }
+      const t = (limit - from.value) / (to.value - from.value);
+      const midX = from.x + (to.x - from.x) * t;
+      const midY = from.y + (to.y - from.y) * t;
+      return [
+        { x1: from.x, y1: from.y, x2: midX, y2: midY, value: from.value },
+        { x1: midX, y1: midY, x2: to.x, y2: to.y, value: to.value },
+      ];
+    }
+
+    function drawVisibleCharts(scope = document) {
+      scope.querySelectorAll("tr.chart-row:not(.hidden) canvas.share-chart").forEach((canvas) => {
+        drawShareChart(canvas);
+      });
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function renderTabs() {
+      document.getElementById("mainTabs").innerHTML = FUNDS.map((fund) => `
+        <button class="main-tab${state.fund === fund.id ? " active" : ""}" data-fund="${fund.id}" type="button">
+          ${escapeHtml(fund.label)}
+        </button>
+      `).join("");
+
+      document.getElementById("subTabs").innerHTML = SUBTABS.map((tab) => `
+        <button class="sub-tab${state.subtab === tab.id ? " active" : ""}" data-subtab="${tab.id}" type="button">
+          ${escapeHtml(tab.label)}
+        </button>
+      `).join("");
+    }
+
+    function splitLimitName(name) {
+      const text = displayValue(name);
+      const match = text.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+      if (!match) return { title: text, note: "" };
+      const note = match[2].trim();
+      return {
+        title: match[1].trim(),
+        note: note ? note.charAt(0).toUpperCase() + note.slice(1) : "",
+      };
+    }
+
+    function limitNameHtml(row) {
+      const { title, note } = splitLimitName(row.name);
+      if (!note) return escapeHtml(title);
+      return `<span class="section-title">${escapeHtml(title)}<span class="info-tip"><button class="info-icon" type="button" aria-label="${escapeHtml(note)}">i</button><span class="info-bubble" role="tooltip">${escapeHtml(note)}</span></span></span>`;
+    }
+
+    function renderTableRow(row, extraClass = "", options = {}) {
+      const type = displayValue(row.limit_type);
+      const rate = row.shareDisplay ? row.shareDisplay : displayRate(row.limit_rate);
+      const expandable = extraClass.includes("expandable");
+      const nameHtml = limitNameHtml(row);
+      const label = expandable
+        ? `<span class="chevron" aria-hidden="true"></span>${nameHtml}`
+        : nameHtml;
+      const groupAttr = options.group ? ` data-group="${escapeHtml(options.group)}"` : "";
+      const parentAttr = options.parent ? ` data-parent="${escapeHtml(options.parent)}"` : "";
+      const hiddenAttr = options.hidden ? " hidden" : "";
+      const badgeStatus = options.rateStatus === "breach" ? "failed" : options.rateStatus;
+      const lastCell = options.sectionStatus
+        ? `<span class="limits-badge ${options.sectionStatus}">${options.sectionStatus === "failed" ? "Limits Failed" : "Limits OK"}</span>`
+        : (rate ? `<span class="limits-badge ${badgeStatus}">${escapeHtml(rate)}</span>` : "");
+      return `
+        <tr class="${extraClass}"${groupAttr}${parentAttr}${hiddenAttr}>
+          <td>${label}</td>
+          <td>${type ? `<span class="badge">${escapeHtml(type)}</span>` : ""}</td>
+          <td>${lastCell}</td>
+        </tr>
+      `;
+    }
+
+    function sectionPrefix(row) {
+      const code = String(row.code || "");
+      const name = String(row.name || "");
+      if (code === "5_1" || /^5\.1\b/.test(name)) return "5_1";
+      if (code === "5_3" || /^5\.3\b/.test(name)) return "5_3";
+      return "";
+    }
+
+    function areaStatus(prefix, data) {
+      for (const row of state.limits) {
+        const code = String(row.code || "");
+        if (!code.startsWith(`${prefix}_`)) continue;
+        const child = childrenForLimit(row, data);
+        const items = child?.items || [];
+        if (!items.length || !Number.isFinite(Number(row.limit_rate))) continue;
+        if (rateStatusForItems(items, row.limit_rate) === "breach") return "failed";
+      }
+      return "ok";
+    }
+
+    function childrenForLimit(row, data) {
+      if (isARow(row)) return { items: data.belowFive, id: "5_1_a", nameField: "ticker_name" };
+      if (isB1Row(row)) return { items: data.atLeastFive, id: "5_1_b_1", nameField: "ticker_name" };
+      if (isB2Row(row)) return { items: data.totalB, id: "5_1_b_2", nameField: "ticker_name" };
+      if (isCRow(row)) return { items: data.bonds, id: "5_1_c", nameField: "ticker_name" };
+      if (isDRow(row)) return { items: data.deposits, id: "5_1_d", nameField: "ticker_name" };
+      if (isERow(row)) return { items: data.eItems, id: "5_1_e", nameField: "ticker_name" };
+      if (isFRow(row)) return { items: data.counterparties, id: "5_1_f", nameField: "counterparty_name" };
+      if (isGRow(row)) return { items: data.counterpartiesG, id: "5_1_g", nameField: "counterparty_name" };
+      if (is53ARow(row)) return { items: data.funds, id: "5_3_a", nameField: "ticker_name" };
+      if (is53BRow(row)) return { items: data.total53A, id: "5_3_b", nameField: "ticker_name" };
+      if (is53ERow(row)) return { items: data.counterparties53E, id: "5_3_e", nameField: "counterparty_name" };
+      return null;
+    }
+
+    function renderLimitsTable() {
+      const rows = [];
+      const hasHoldings = state.fund === "equity";
+      const atLeastFive = hasHoldings ? stocksAtLeastFivePercent() : [];
+      const funds = hasHoldings ? fundHoldings() : [];
+      const data = {
+        belowFive: hasHoldings ? stocksBelowFivePercent() : [],
+        atLeastFive,
+        deposits: hasHoldings ? depositHoldings() : [],
+        counterparties: hasHoldings ? counterpartiesForF() : [],
+        counterpartiesG: hasHoldings ? counterpartiesForG() : [],
+        totalB: atLeastFive.length ? [{
+          ticker_name: "Total b)",
+          share: sumShares(atLeastFive),
+          chartIsins: atLeastFive.map((item) => item.isin).filter(Boolean),
+        }] : [],
+        bonds: hasHoldings ? bondHoldings() : [],
+        eItems: hasHoldings ? eHoldings() : [],
+        funds,
+        total53A: funds.length ? [{
+          ticker_name: "Total a)",
+          share: sumShares(funds),
+          chartIsins: funds.map((item) => item.isin).filter(Boolean),
+        }] : [],
+        counterparties53E: hasHoldings ? counterpartiesFor53E() : [],
+      };
+
+      for (const row of state.limits) {
+        const child = childrenForLimit(row, data);
+        const items = child?.items || [];
+        const classes = ["limit"];
+        if (isSectionRow(row)) classes.push("section");
+        if (items.length) classes.push("expandable", "collapsed");
+        const prefix = isSectionRow(row) ? sectionPrefix(row) : "";
+        rows.push(renderTableRow(row, classes.join(" "), {
+          group: items.length ? child.id : "",
+          rateStatus: prefix ? "" : rateStatusForItems(items, row.limit_rate),
+          sectionStatus: prefix ? areaStatus(prefix, data) : "",
+        }));
+        if (items.length) {
+          const withChart = ["5_1_a", "5_1_b_1", "5_1_b_2", "5_1_f", "5_1_g", "5_3_a", "5_3_b", "5_3_e"].includes(child.id);
+          rows.push(...holdingRows(items, child.id, child.nameField, row.limit_rate, withChart));
+        }
+      }
+
+      const dates = portfolioDates();
+      const minDate = dates[0] || "";
+      const maxDate = dates[dates.length - 1] || "";
+      const overallStatus = (areaStatus("5_1", data) === "ok" && areaStatus("5_3", data) === "ok") ? "ok" : "failed";
+      const overallLabel = overallStatus === "failed" ? "Limits Failed" : "Limits OK";
+
+      return `
+        <div class="date-bar">
+          <div class="date-bar-left">
+            <label for="asOfDate">Date</label>
+            <input id="asOfDate" type="date" value="${escapeHtml(state.selectedDate)}" min="${escapeHtml(minDate)}" max="${escapeHtml(maxDate)}" />
+          </div>
+          <span></span>
+          <span class="limits-badge ${overallStatus}">${overallLabel}</span>
+        </div>
+        <div class="table-wrap limits-table-wrap">
+          <table>
+            <tbody>${rows.join("")}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderVarTable() {
+      const equityItems = varRowsForSelectedDate();
+      const fxItems = fxVarRowsForSelectedDate();
+      const dates = portfolioDates();
+      const minDate = dates[0] || "";
+      const maxDate = dates[dates.length - 1] || "";
+      const equitySum = weightedVarSum(equityItems);
+      const fxSum = weightedVarSum(fxItems);
+      return `
+        <div class="date-bar">
+          ${renderDatePeriodConfidence(minDate, maxDate, [99, 95, 90], state.varConfidence)}
+          <span></span>
+          <div class="date-bar-right">
+            <span class="var-sum-label">Akciový Weighted VaR</span>
+            ${sumHeatBadge(formatVarPct(equitySum), equitySum, 0.05, 0.20)}
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="var-table">
+            <tbody>${renderVarSection(varSectionTitle("Akciový"), "equity_var", equityItems, true, true).join("")}</tbody>
+          </table>
+        </div>
+        <div class="date-bar var-mid-bar">
+          <span></span>
+          <span></span>
+          <div class="date-bar-right">
+            <span class="var-sum-label">Měnový Weighted Var</span>
+            ${sumHeatBadge(formatVarPct(fxSum), fxSum, 0.02, 0.10)}
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="var-table">
+            <tbody>${renderVarSection(varSectionTitle("Měnový"), "fx_var", fxItems, true, true).join("")}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderStressTable() {
+      const items = stressRowsForSelectedDate();
+      const fxItems = fxStressRowsForSelectedDate();
+      const dates = portfolioDates();
+      const minDate = dates[0] || "";
+      const maxDate = dates[dates.length - 1] || "";
+      const weightedSum = weightedVarSum(items);
+      const fxSum = weightedVarSum(fxItems);
+      return `
+        <div class="date-bar">
+          ${renderDatePeriodConfidence(minDate, maxDate, [200, 150, 100, 99, 95, 90], state.stressConfidence)}
+          <span></span>
+          <div class="date-bar-right">
+            <span class="var-sum-label">Weighted Stress Test</span>
+            ${sumHeatBadge(formatVarPct(weightedSum), weightedSum, -0.05, -0.20)}
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="var-table">
+            <tbody>${renderVarSection(stressSectionTitle(), "stress_test", items, true).join("")}</tbody>
+          </table>
+        </div>
+        <div class="date-bar var-mid-bar">
+          <span></span>
+          <span></span>
+          <div class="date-bar-right">
+            <span class="var-sum-label">Měnový Weighted Stress Test</span>
+            ${sumHeatBadge(formatVarPct(fxSum), fxSum, -0.02, -0.10)}
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="var-table">
+            <tbody>${renderVarSection(stressSectionTitle("Měnový Stress Test"), "fx_stress_test", fxItems, true).join("")}</tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderPlaceholder(title, text) {
+      const fundLabel = FUNDS.find((item) => item.id === state.fund)?.label || "";
+      return `
+        <div class="placeholder">
+          <h2>${escapeHtml(title)}</h2>
+          <p>${escapeHtml(text)} pro fond <strong>${escapeHtml(fundLabel)}</strong> zatím není k dispozici.</p>
+        </div>
+      `;
+    }
+
+    function renderContent() {
+      const content = document.getElementById("content");
+      if (state.fund !== "equity") {
+        const titles = {
+          limits: ["Limits", "Modul limitů"],
+          var: ["Value at Risk", "Modul VaR"],
+          stress: ["Stress Tests", "Modul stresových testů"],
+        };
+        const [title, text] = titles[state.subtab] || titles.limits;
+        content.innerHTML = renderPlaceholder(title, text);
+        return;
+      }
+      if (state.subtab === "limits") {
+        content.innerHTML = renderLimitsTable();
+        return;
+      }
+      if (state.subtab === "var") {
+        content.innerHTML = renderVarTable();
+        return;
+      }
+      if (state.subtab === "stress") {
+        content.innerHTML = renderStressTable();
+        return;
+      }
+      content.innerHTML = renderPlaceholder("Stress Tests", "Modul stresových testů");
+    }
+
+    async function loadJsonArray(urls) {
+      for (const url of urls) {
+        try {
+          const response = await fetch(url, { cache: "no-store" });
+          if (!response.ok) continue;
+          const text = (await response.text()).replace(/\bNaN\b/g, "null");
+          const data = JSON.parse(text);
+          if (Array.isArray(data)) return { data, url };
+        } catch {
+          /* zkus další zdroj */
+        }
+      }
+      return null;
+    }
+
+    async function loadLimits() {
+      const loaded = await loadJsonArray(DATA_URLS);
+      if (loaded) {
+        state.limits = loaded.data;
+        state.source = loaded.url;
+        return;
+      }
+      state.limits = FALLBACK_LIMITS;
+      state.source = "vestavěná mock data";
+    }
+
+    async function loadPortfolio() {
+      const loaded = await loadJsonArray(PORTFOLIO_URLS);
+      state.portfolio = loaded ? loaded.data : [];
+      state.selectedDate = latestPortfolioDate();
+    }
+
+    async function loadPrices() {
+      const loaded = await loadJsonArray(PRICE_URLS);
+      state.prices = loaded ? loaded.data : [];
+    }
+
+    document.getElementById("content").addEventListener("change", (event) => {
+      if (event.target.id === "asOfDate") {
+        state.selectedDate = event.target.value;
+        renderContent();
+        return;
+      }
+      if (event.target.id === "varPeriod") {
+        state.varPeriod = event.target.value || "month";
+        renderContent();
+        return;
+      }
+      if (event.target.id !== "varConfidence") return;
+      const value = Number(event.target.value);
+      if (state.subtab === "stress") {
+        state.stressConfidence = Number.isFinite(value) ? value : 100;
+      } else {
+        state.varConfidence = Number.isFinite(value) ? value : 99;
+      }
+      renderContent();
+    });
+
+    function setRowHidden(row, hidden) {
+      row.classList.toggle("hidden", hidden);
+      row.hidden = hidden;
+    }
+
+    document.getElementById("content").addEventListener("click", (event) => {
+      if (event.target.closest("input, select, canvas, .info-tip")) return;
+      const row = event.target.closest("tr.expandable");
+      if (!row) return;
+      row.classList.toggle("collapsed");
+      const group = row.dataset.group;
+      const collapsed = row.classList.contains("collapsed");
+      document.querySelectorAll(`tr[data-parent="${group}"]`).forEach((child) => {
+        setRowHidden(child, collapsed);
+        if (child.dataset.group) {
+          document.querySelectorAll(`tr[data-parent="${child.dataset.group}"]`).forEach((nested) => {
+            if (collapsed) {
+              setRowHidden(nested, true);
+              child.classList.add("collapsed");
+            } else if (child.classList.contains("collapsed")) {
+              setRowHidden(nested, true);
+            }
+          });
+        }
+      });
+      if (!collapsed) {
+        requestAnimationFrame(() => drawVisibleCharts(document.getElementById("content")));
+      }
+    });
+
+    document.getElementById("mainTabs").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-fund]");
+      if (!button) return;
+      state.fund = button.dataset.fund;
+      renderTabs();
+      renderContent();
+    });
+
+    document.getElementById("subTabs").addEventListener("click", (event) => {
+      const button = event.target.closest("[data-subtab]");
+      if (!button) return;
+      state.subtab = button.dataset.subtab;
+      renderTabs();
+      renderContent();
+    });
+
+    (async function init() {
+      renderTabs();
+      document.getElementById("content").innerHTML = `<p class="status">Načítám limity…</p>`;
+      await Promise.all([loadLimits(), loadPortfolio(), loadPrices()]);
+      renderContent();
+    })();
+  </script>
+</body>
+</html>
