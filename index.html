@@ -691,7 +691,7 @@
 
       .date-bar-left {
         display: grid;
-        grid-template-columns: auto minmax(0, 1fr);
+        grid-template-columns: max-content minmax(0, 1fr);
         align-items: center;
         gap: 8px 10px;
       }
@@ -699,16 +699,34 @@
       .date-bar input[type="date"],
       .date-bar select {
         min-width: 0;
+        max-width: 100%;
         width: 100%;
+        box-sizing: border-box;
       }
 
       .date-picker {
         min-width: 0;
+        max-width: 100%;
         width: 100%;
+        justify-self: stretch;
       }
 
       .date-picker input[type="date"] {
+        display: block;
+        min-width: 0;
+        max-width: 100%;
         width: 100%;
+        box-sizing: border-box;
+      }
+
+      .date-picker input[type="date"]::-webkit-datetime-edit,
+      .date-picker input[type="date"]::-webkit-datetime-edit-fields-wrapper {
+        min-width: 0;
+      }
+
+      .date-picker input[type="date"]::-webkit-calendar-picker-indicator {
+        margin: 0 0 0 4px;
+        padding: 0;
       }
 
       .date-picker-pop {
