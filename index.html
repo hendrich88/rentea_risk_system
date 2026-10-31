@@ -958,7 +958,7 @@
     function holdingRows(items, parentId, nameField, parentLimit, withChart = false, sectionId = "") {
       const rows = [];
       const sectionOpen = !sectionId || isGroupOpen(sectionId, true);
-      const parentOpen = isGroupOpen(parentId, false);
+      const parentOpen = isGroupOpen(parentId, true);
       const rowVisible = sectionOpen && parentOpen;
       items.forEach((item, index) => {
         const isins = (item.chartIsins && item.chartIsins.length)
@@ -1803,7 +1803,7 @@
           if (!isGroupOpen(prefix, true)) classes.push("collapsed");
         } else if (items.length) {
           classes.push("expandable");
-          if (!isGroupOpen(child.id, false)) classes.push("collapsed");
+          if (!isGroupOpen(child.id, true)) classes.push("collapsed");
         }
         if (!prefix && !sectionOpen) classes.push("hidden");
         rows.push(renderTableRow(row, classes.join(" "), {
