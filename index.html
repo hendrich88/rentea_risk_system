@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rentea Risk Management System</title>
+  <title>RISK MANAGEMENT SYSTEM FOR AN INVESTMENT COMPANY</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -179,6 +179,111 @@
 
     .date-bar #varPeriod {
       min-width: 118px;
+    }
+
+    .date-picker {
+      position: relative;
+    }
+
+    .date-picker-pop {
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 0;
+      z-index: 50;
+      width: 292px;
+      padding: 12px;
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: 0 12px 28px rgba(17, 24, 39, 0.14);
+    }
+
+    .date-picker-pop.hidden {
+      display: none;
+    }
+
+    .date-picker-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .date-picker-head button {
+      appearance: none;
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .date-picker-title {
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+
+    .date-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+    }
+
+    .date-picker-dow,
+    .date-picker-day {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      border-radius: 8px;
+    }
+
+    .date-picker-dow {
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .date-picker-day {
+      appearance: none;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-family: inherit;
+      font-weight: 600;
+    }
+
+    .date-picker-day.muted {
+      color: #9ca3af;
+      font-weight: 500;
+    }
+
+    .date-picker-day.nodata,
+    .date-picker-day:disabled {
+      color: #c4c4c4;
+      background: transparent;
+      cursor: default;
+      font-weight: 400;
+    }
+
+    .date-picker-day.selected {
+      background: var(--accent);
+      color: #ffffff;
+    }
+
+    .date-picker-day:not(:disabled):hover {
+      background: #e8edf3;
+    }
+
+    .date-picker-day.selected:hover {
+      background: var(--accent);
     }
 
     .table-wrap {
@@ -520,7 +625,7 @@
 <body>
   <div class="app">
     <header>
-      <h1>RENTEA RISK MANAGEMENT SYSTEM</h1>
+      <h1>RISK MANAGEMENT SYSTEM FOR AN INVESTMENT COMPANY</h1>
     </header>
 
     <section class="panel">
@@ -545,18 +650,18 @@
     ];
 
     const DATA_URLS = [
-      "./limits.json",
       "https://raw.githubusercontent.com/hendrich88/rentea_data/main/limits.json",
+      "./limits.json",
     ];
 
     const PORTFOLIO_URLS = [
-      "./portfolio_final.json",
       "https://raw.githubusercontent.com/hendrich88/rentea_data/main/portfolio_final.json",
+      "./portfolio_final.json",
     ];
 
     const PRICE_URLS = [
-      "./prices_history_final.json",
       "https://raw.githubusercontent.com/hendrich88/rentea_data/main/prices_history_final.json",
+      "./prices_history_final.json",
     ];
 
     const EMPTY_VALUES = new Set(["", "none", "null", "nan", "undefined"]);
@@ -589,6 +694,8 @@
       stressConfidence: 100,
       varPeriod: "month",
       source: "",
+      groupOpen: {},
+      calendarMonth: "",
     };
 
     function isEmptyValue(value) {
@@ -694,6 +801,31 @@
       const date = new Date(millis);
       if (Number.isNaN(date.getTime())) return "";
       return date.toISOString().slice(0, 10);
+    }
+
+    function weekdayUtc(dateKey) {
+      const date = new Date(`${dateKey}T00:00:00Z`);
+      return Number.isNaN(date.getTime()) ? -1 : date.getUTCDay();
+    }
+
+    function isWeekendDate(dateKey) {
+      const day = weekdayUtc(dateKey);
+      return day === 0 || day === 6;
+    }
+
+    function previousWeekday(dateKey) {
+      if (!dateKey) return "";
+      const date = new Date(`${dateKey}T00:00:00Z`);
+      while (!Number.isNaN(date.getTime()) && (date.getUTCDay() === 0 || date.getUTCDay() === 6)) {
+        date.setUTCDate(date.getUTCDate() - 1);
+      }
+      return date.toISOString().slice(0, 10);
+    }
+
+    function shiftMonthKey(monthKey, delta) {
+      const [year, month] = monthKey.split("-").map(Number);
+      const date = new Date(Date.UTC(year, month - 1 + delta, 1));
+      return date.toISOString().slice(0, 7);
     }
 
     function portfolioDates() {
@@ -811,20 +943,35 @@
     }
 
     function rateStatusForItems(items, limitRate) {
-      if (!Number.isFinite(Number(limitRate))) return "";
-      if (!items.length) return "ok";
+      if (!items.length || !Number.isFinite(Number(limitRate))) return "";
       return items.every((item) => withinLimit(item.share, limitRate)) ? "ok" : "breach";
     }
 
-    function holdingRows(items, parentId, nameField, parentLimit, withChart = false) {
+    function isGroupOpen(groupId, defaultOpen = false) {
+      if (!groupId) return defaultOpen;
+      if (Object.prototype.hasOwnProperty.call(state.groupOpen, groupId)) {
+        return Boolean(state.groupOpen[groupId]);
+      }
+      return defaultOpen;
+    }
+
+    function holdingRows(items, parentId, nameField, parentLimit, withChart = false, sectionId = "") {
       const rows = [];
+      const sectionOpen = !sectionId || isGroupOpen(sectionId, true);
+      const parentOpen = isGroupOpen(parentId, false);
+      const rowVisible = sectionOpen && parentOpen;
       items.forEach((item, index) => {
         const isins = (item.chartIsins && item.chartIsins.length)
           ? item.chartIsins.filter(Boolean)
           : (item.isin ? [String(item.isin).trim()] : []);
         const groupId = withChart && isins.length ? `chart-${parentId}-${index}` : "";
-        const classes = ["holding", "hidden"];
-        if (groupId) classes.push("expandable", "collapsed");
+        const groupOpen = isGroupOpen(groupId, false);
+        const classes = ["holding"];
+        if (!rowVisible) classes.push("hidden");
+        if (groupId) {
+          classes.push("expandable");
+          if (!groupOpen) classes.push("collapsed");
+        }
         rows.push(renderTableRow({
           name: item[nameField] || item.ticker_name,
           limit_type: "",
@@ -832,7 +979,7 @@
         }, classes.join(" "), {
           parent: parentId,
           group: groupId,
-          hidden: true,
+          hidden: !rowVisible,
           rateStatus: Number.isFinite(Number(parentLimit))
             ? (withinLimit(item.share, parentLimit) ? "ok" : "breach")
             : "",
@@ -841,8 +988,9 @@
           const label = item.ticker_name || item[nameField] || "";
           const isinLabel = isins.join(", ");
           const caption = `${label} · ${isinLabel} · limit ${Math.round(Number(parentLimit) * 100)} %`;
+          const chartHidden = !rowVisible || !groupOpen;
           rows.push(`
-            <tr class="chart-row hidden" data-parent="${escapeHtml(groupId)}" hidden>
+            <tr class="chart-row${chartHidden ? " hidden" : ""}" data-parent="${escapeHtml(groupId)}"${chartHidden ? " hidden" : ""}>
               <td colspan="3">
                 <div class="chart-wrap">
                   <p class="chart-caption">${escapeHtml(caption)}</p>
@@ -1049,7 +1197,7 @@
       if (!returns.length) return null;
       const sorted = [...returns].sort((a, b) => a.absolute - b.absolute);
       const level = Number(confidence || 99);
-      if (level > 100) {
+      if (level >= 100) {
         const worst = sorted[0];
         return { ...worst, absolute: worst.absolute * (level / 100) };
       }
@@ -1125,11 +1273,79 @@
       });
     }
 
+    function renderDateInput(minDate, maxDate) {
+      return `
+            <div class="date-picker">
+              <input id="asOfDate" type="date" value="${escapeHtml(state.selectedDate)}" min="${escapeHtml(minDate)}" max="${escapeHtml(maxDate)}" />
+              <div class="date-picker-pop hidden" data-min="${escapeHtml(minDate)}" data-max="${escapeHtml(maxDate)}"></div>
+            </div>`;
+    }
+
+    function calendarCells(monthKey, minDate, maxDate) {
+      const [year, month] = monthKey.split("-").map(Number);
+      const first = new Date(Date.UTC(year, month - 1, 1));
+      const startOffset = (first.getUTCDay() + 6) % 7;
+      const cells = [];
+      for (let i = 0; i < 42; i += 1) {
+        const date = new Date(Date.UTC(year, month - 1, 1 - startOffset + i));
+        const key = date.toISOString().slice(0, 10);
+        const inMonth = date.getUTCMonth() === month - 1;
+        const weekend = isWeekendDate(key);
+        const outOfRange = (minDate && key < minDate) || (maxDate && key > maxDate);
+        const noData = weekend || outOfRange;
+        const classes = ["date-picker-day"];
+        if (!inMonth) classes.push("muted");
+        if (noData) classes.push("nodata");
+        if (key === state.selectedDate) classes.push("selected");
+        const title = noData ? ' title="Žádná data"' : "";
+        cells.push(`<button type="button" class="${classes.join(" ")}" data-date="${key}"${noData ? " disabled" : ""}${title}>${date.getUTCDate()}</button>`);
+      }
+      return cells.join("");
+    }
+
+    function renderCalendarPop(pop) {
+      if (!pop) return;
+      const minDate = pop.dataset.min || "";
+      const maxDate = pop.dataset.max || "";
+      const monthKey = state.calendarMonth || (state.selectedDate || maxDate).slice(0, 7);
+      state.calendarMonth = monthKey;
+      const titleDate = new Date(`${monthKey}-01T00:00:00Z`);
+      const title = titleDate.toLocaleDateString("cs-CZ", { month: "long", year: "numeric", timeZone: "UTC" });
+      pop.innerHTML = `
+        <div class="date-picker-head">
+          <button type="button" class="date-picker-prev" aria-label="Předchozí měsíc">‹</button>
+          <span class="date-picker-title">${escapeHtml(title)}</span>
+          <button type="button" class="date-picker-next" aria-label="Další měsíc">›</button>
+        </div>
+        <div class="date-picker-grid">
+          ${["Po", "Út", "St", "Čt", "Pá", "So", "Ne"].map((label) => (
+            `<span class="date-picker-dow">${label}</span>`
+          )).join("")}
+          ${calendarCells(monthKey, minDate, maxDate)}
+        </div>
+      `;
+    }
+
+    function closeDatePicker() {
+      document.querySelectorAll(".date-picker-pop").forEach((pop) => pop.classList.add("hidden"));
+    }
+
+    function toggleDatePicker(picker) {
+      const pop = picker.querySelector(".date-picker-pop");
+      if (!pop) return;
+      const willOpen = pop.classList.contains("hidden");
+      closeDatePicker();
+      if (!willOpen) return;
+      state.calendarMonth = (state.selectedDate || pop.dataset.max || "").slice(0, 7);
+      renderCalendarPop(pop);
+      pop.classList.remove("hidden");
+    }
+
     function renderDatePeriodConfidence(minDate, maxDate, levels, selected, levelLabel = "Confidence Level") {
       return `
           <div class="date-bar-left">
             <label for="asOfDate">Date</label>
-            <input id="asOfDate" type="date" value="${escapeHtml(state.selectedDate)}" min="${escapeHtml(minDate)}" max="${escapeHtml(maxDate)}" />
+            ${renderDateInput(minDate, maxDate)}
             <label for="varPeriod">Period</label>
             <select id="varPeriod">
               ${VAR_PERIODS.map((item) => `
@@ -1195,8 +1411,12 @@
     function renderVarSection(title, groupId, items, withHeat = false, invertHeat = false) {
       const absRange = withHeat ? numericRange(items, "absolute") : null;
       const wtdRange = withHeat ? numericRange(items, "weighted") : null;
+      const sectionOpen = isGroupOpen(groupId, true);
       const sectionClasses = ["limit", "section"];
-      if (items.length) sectionClasses.push("expandable");
+      if (items.length) {
+        sectionClasses.push("expandable");
+        if (!sectionOpen) sectionClasses.push("collapsed");
+      }
       const groupAttr = items.length ? ` data-group="${escapeHtml(groupId)}"` : "";
       return [
         `<tr class="${sectionClasses.join(" ")}"${groupAttr}>
@@ -1205,7 +1425,7 @@
           <td>Weighted</td>
         </tr>`,
         ...items.map((item) => `
-          <tr class="holding" data-parent="${escapeHtml(groupId)}">
+          <tr class="holding${sectionOpen ? "" : " hidden"}" data-parent="${escapeHtml(groupId)}"${sectionOpen ? "" : " hidden"}>
             <td>${escapeHtml(item.name)}</td>
             <td>${withHeat
               ? heatBadge(item.absoluteDisplay, item.absolute, absRange, invertHeat)
@@ -1485,7 +1705,11 @@
       const badgeStatus = options.rateStatus === "breach" ? "failed" : options.rateStatus;
       const lastCell = options.sectionStatus
         ? `<span class="limits-badge ${options.sectionStatus}">${options.sectionStatus === "failed" ? "Limits Failed" : "Limits OK"}</span>`
-        : (rate ? `<span class="limits-badge ${badgeStatus}">${escapeHtml(rate)}</span>` : "");
+        : (rate
+          ? (options.rateStatus
+            ? `<span class="limits-badge ${badgeStatus}">${escapeHtml(rate)}</span>`
+            : `<span class="rate">${escapeHtml(rate)}</span>`)
+          : "");
       return `
         <tr class="${extraClass}"${groupAttr}${parentAttr}${hiddenAttr}>
           <td>${label}</td>
@@ -1500,6 +1724,15 @@
       const name = String(row.name || "");
       if (code === "5_1" || /^5\.1\b/.test(name)) return "5_1";
       if (code === "5_3" || /^5\.3\b/.test(name)) return "5_3";
+      return "";
+    }
+
+    function sectionIdForLimit(row) {
+      const prefix = sectionPrefix(row);
+      if (prefix) return prefix;
+      const code = String(row.code || "");
+      if (code.startsWith("5_1_")) return "5_1";
+      if (code.startsWith("5_3_")) return "5_3";
       return "";
     }
 
@@ -1560,18 +1793,29 @@
       for (const row of state.limits) {
         const child = childrenForLimit(row, data);
         const items = child?.items || [];
+        const prefix = isSectionRow(row) ? sectionPrefix(row) : "";
+        const sectionId = sectionIdForLimit(row);
+        const sectionOpen = !sectionId || isGroupOpen(sectionId, true);
         const classes = ["limit"];
         if (isSectionRow(row)) classes.push("section");
-        if (items.length) classes.push("expandable", "collapsed");
-        const prefix = isSectionRow(row) ? sectionPrefix(row) : "";
+        if (prefix) {
+          classes.push("expandable");
+          if (!isGroupOpen(prefix, true)) classes.push("collapsed");
+        } else if (items.length) {
+          classes.push("expandable");
+          if (!isGroupOpen(child.id, false)) classes.push("collapsed");
+        }
+        if (!prefix && !sectionOpen) classes.push("hidden");
         rows.push(renderTableRow(row, classes.join(" "), {
-          group: items.length ? child.id : "",
+          group: prefix ? prefix : (items.length ? child.id : ""),
+          parent: prefix ? "" : sectionId,
+          hidden: !prefix && !sectionOpen,
           rateStatus: prefix ? "" : rateStatusForItems(items, row.limit_rate),
           sectionStatus: prefix ? areaStatus(prefix, data) : "",
         }));
         if (items.length) {
           const withChart = ["5_1_a", "5_1_b_1", "5_1_b_2", "5_1_f", "5_1_g", "5_3_a", "5_3_b", "5_3_e"].includes(child.id);
-          rows.push(...holdingRows(items, child.id, child.nameField, row.limit_rate, withChart));
+          rows.push(...holdingRows(items, child.id, child.nameField, row.limit_rate, withChart, sectionId));
         }
       }
 
@@ -1585,7 +1829,7 @@
         <div class="date-bar">
           <div class="date-bar-left">
             <label for="asOfDate">Date</label>
-            <input id="asOfDate" type="date" value="${escapeHtml(state.selectedDate)}" min="${escapeHtml(minDate)}" max="${escapeHtml(maxDate)}" />
+            ${renderDateInput(minDate, maxDate)}
           </div>
           <span></span>
           <span class="limits-badge ${overallStatus}">${overallLabel}</span>
@@ -1698,6 +1942,7 @@
       }
       if (state.subtab === "limits") {
         content.innerHTML = renderLimitsTable();
+        requestAnimationFrame(() => drawVisibleCharts(content));
         return;
       }
       if (state.subtab === "var") {
@@ -1740,7 +1985,7 @@
     async function loadPortfolio() {
       const loaded = await loadJsonArray(PORTFOLIO_URLS);
       state.portfolio = loaded ? loaded.data : [];
-      state.selectedDate = latestPortfolioDate();
+      state.selectedDate = previousWeekday(latestPortfolioDate());
     }
 
     async function loadPrices() {
@@ -1750,7 +1995,12 @@
 
     document.getElementById("content").addEventListener("change", (event) => {
       if (event.target.id === "asOfDate") {
-        state.selectedDate = event.target.value;
+        const value = event.target.value;
+        if (isWeekendDate(value)) {
+          event.target.value = state.selectedDate;
+          return;
+        }
+        state.selectedDate = value;
         renderContent();
         return;
       }
@@ -1774,26 +2024,59 @@
       row.hidden = hidden;
     }
 
+    function setGroupDescendantsHidden(group, hidden) {
+      document.querySelectorAll(`tr[data-parent="${group}"]`).forEach((child) => {
+        if (hidden) {
+          setRowHidden(child, true);
+          if (child.dataset.group) setGroupDescendantsHidden(child.dataset.group, true);
+          return;
+        }
+        setRowHidden(child, false);
+        if (child.dataset.group) {
+          setGroupDescendantsHidden(child.dataset.group, child.classList.contains("collapsed"));
+        }
+      });
+    }
+
+    document.getElementById("content").addEventListener("mousedown", (event) => {
+      if (event.target.id === "asOfDate") event.preventDefault();
+    });
+
     document.getElementById("content").addEventListener("click", (event) => {
+      const picker = event.target.closest(".date-picker");
+      if (picker) {
+        if (event.target.id === "asOfDate") {
+          event.preventDefault();
+          toggleDatePicker(picker);
+          return;
+        }
+        const pop = picker.querySelector(".date-picker-pop");
+        if (event.target.closest(".date-picker-prev")) {
+          state.calendarMonth = shiftMonthKey(state.calendarMonth || (state.selectedDate || "").slice(0, 7), -1);
+          renderCalendarPop(pop);
+          return;
+        }
+        if (event.target.closest(".date-picker-next")) {
+          state.calendarMonth = shiftMonthKey(state.calendarMonth || (state.selectedDate || "").slice(0, 7), 1);
+          renderCalendarPop(pop);
+          return;
+        }
+        const day = event.target.closest(".date-picker-day");
+        if (day && !day.disabled && day.dataset.date && !isWeekendDate(day.dataset.date)) {
+          state.selectedDate = day.dataset.date;
+          renderContent();
+        }
+        return;
+      }
+      closeDatePicker();
       if (event.target.closest("input, select, canvas, .info-tip")) return;
       const row = event.target.closest("tr.expandable");
       if (!row) return;
       row.classList.toggle("collapsed");
       const group = row.dataset.group;
       const collapsed = row.classList.contains("collapsed");
-      document.querySelectorAll(`tr[data-parent="${group}"]`).forEach((child) => {
-        setRowHidden(child, collapsed);
-        if (child.dataset.group) {
-          document.querySelectorAll(`tr[data-parent="${child.dataset.group}"]`).forEach((nested) => {
-            if (collapsed) {
-              setRowHidden(nested, true);
-              child.classList.add("collapsed");
-            } else if (child.classList.contains("collapsed")) {
-              setRowHidden(nested, true);
-            }
-          });
-        }
-      });
+      if (group) state.groupOpen[group] = !collapsed;
+      if (group) setGroupDescendantsHidden(group, collapsed);
       if (!collapsed) {
         requestAnimationFrame(() => drawVisibleCharts(document.getElementById("content")));
       }
@@ -1813,6 +2096,14 @@
       state.subtab = button.dataset.subtab;
       renderTabs();
       renderContent();
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".date-picker")) closeDatePicker();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") closeDatePicker();
     });
 
     (async function init() {
