@@ -172,12 +172,8 @@
       border-radius: 999px;
       font-size: 13px;
       border: 1px solid transparent;
-    }
-
-    .sub-tab-with-info {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
     }
 
     .sub-tab:hover {
@@ -2010,12 +2006,13 @@
 
       const limitsNote = "Aktuální hodnoty akcií jsou denně automaticky načítány z finance.yahoo.com";
       document.getElementById("subTabs").innerHTML = SUBTABS.map((tab) => {
-        const button = `
+        const label = tab.id === "limits"
+          ? `<span class="section-title">${escapeHtml(tab.label)}${infoTipHtml(limitsNote, "span")}</span>`
+          : escapeHtml(tab.label);
+        return `
         <button class="sub-tab${state.subtab === tab.id ? " active" : ""}" data-subtab="${tab.id}" type="button">
-          ${escapeHtml(tab.label)}
+          ${label}
         </button>`;
-        if (tab.id !== "limits") return button;
-        return `<span class="sub-tab-with-info">${button}${infoTipHtml(limitsNote)}</span>`;
       }).join("");
     }
 
@@ -2030,9 +2027,12 @@
       };
     }
 
-    function infoTipHtml(note) {
+    function infoTipHtml(note, iconTag = "button") {
       if (!note) return "";
-      return `<span class="info-tip"><button class="info-icon" type="button" aria-label="${escapeHtml(note)}">i</button><span class="info-bubble" role="tooltip">${escapeHtml(note)}</span></span>`;
+      const icon = iconTag === "span"
+        ? `<span class="info-icon" tabindex="0" aria-label="${escapeHtml(note)}">i</span>`
+        : `<button class="info-icon" type="button" aria-label="${escapeHtml(note)}">i</button>`;
+      return `<span class="info-tip">${icon}<span class="info-bubble" role="tooltip">${escapeHtml(note)}</span></span>`;
     }
 
     function limitNameHtml(row) {
