@@ -2004,10 +2004,15 @@
         </button>
       `).join("");
 
-      const limitsNote = "Aktuální hodnoty akcií jsou denně automaticky načítány z finance.yahoo.com";
+      const tabNotes = {
+        limits: "Aktuální hodnoty akcií jsou denně automaticky načítány z finance.yahoo.com",
+        var: "Parametrický VaR počítaný z historických cen akcií na zvolenou Period a Confidence Level",
+        stress: "Historické poklesy cen akcií za posledních pět let na zvolenou Period a Stress Level",
+      };
       document.getElementById("subTabs").innerHTML = SUBTABS.map((tab) => {
-        const label = tab.id === "limits"
-          ? `<span class="section-title">${escapeHtml(tab.label)}${infoTipHtml(limitsNote, "span")}</span>`
+        const note = tabNotes[tab.id];
+        const label = note
+          ? `<span class="section-title">${escapeHtml(tab.label)}${infoTipHtml(note, "span")}</span>`
           : escapeHtml(tab.label);
         return `
         <button class="sub-tab${state.subtab === tab.id ? " active" : ""}" data-subtab="${tab.id}" type="button">
