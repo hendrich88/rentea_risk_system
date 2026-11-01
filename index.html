@@ -538,6 +538,13 @@
       gap: 8px;
     }
 
+    .title-tip-end {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
     .info-tip {
       position: relative;
       display: inline-flex;
@@ -929,8 +936,13 @@
       }
 
       .section-title {
-        flex-wrap: wrap;
+        display: inline;
         min-width: 0;
+      }
+
+      .title-tip-end {
+        display: inline-flex;
+        vertical-align: middle;
       }
 
       tr.chart-row td {
@@ -2070,7 +2082,10 @@
     function limitNameHtml(row) {
       const { title, note } = splitLimitName(row.name);
       if (!note) return escapeHtml(title);
-      return `<span class="section-title">${escapeHtml(title)}${infoTipHtml(note)}</span>`;
+      const words = title.trim().split(/\s+/);
+      const last = words.pop() || "";
+      const head = words.join(" ");
+      return `<span class="section-title">${head ? `${escapeHtml(head)} ` : ""}<span class="title-tip-end">${escapeHtml(last)}${infoTipHtml(note)}</span></span>`;
     }
 
     function renderTableRow(row, extraClass = "", options = {}) {
