@@ -172,6 +172,16 @@
       border-radius: 999px;
       font-size: 13px;
       border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sub-tab .info-bubble {
+      white-space: normal;
+      width: 260px;
+      max-width: min(260px, 70vw);
+      z-index: 90;
     }
 
     .sub-tab:hover {
@@ -2002,11 +2012,16 @@
         </button>
       `).join("");
 
-      document.getElementById("subTabs").innerHTML = SUBTABS.map((tab) => `
+      const limitsNote = "Aktuální hodnoty akcií jsou denně automaticky načítány z finance.yahoo.com";
+      document.getElementById("subTabs").innerHTML = SUBTABS.map((tab) => {
+        const info = tab.id === "limits"
+          ? `<span class="info-tip"><button class="info-icon" type="button" aria-label="${escapeHtml(limitsNote)}">i</button><span class="info-bubble" role="tooltip">${escapeHtml(limitsNote)}</span></span>`
+          : "";
+        return `
         <button class="sub-tab${state.subtab === tab.id ? " active" : ""}" data-subtab="${tab.id}" type="button">
-          ${escapeHtml(tab.label)}
-        </button>
-      `).join("");
+          ${escapeHtml(tab.label)}${info}
+        </button>`;
+      }).join("");
     }
 
     function splitLimitName(name) {
