@@ -172,16 +172,12 @@
       border-radius: 999px;
       font-size: 13px;
       border: 1px solid transparent;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
     }
 
-    .sub-tab .info-bubble {
-      white-space: normal;
-      width: 260px;
-      max-width: min(260px, 70vw);
-      z-index: 90;
+    .sub-tab-with-info {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .sub-tab:hover {
@@ -2014,13 +2010,12 @@
 
       const limitsNote = "Aktuální hodnoty akcií jsou denně automaticky načítány z finance.yahoo.com";
       document.getElementById("subTabs").innerHTML = SUBTABS.map((tab) => {
-        const info = tab.id === "limits"
-          ? `<span class="info-tip"><button class="info-icon" type="button" aria-label="${escapeHtml(limitsNote)}">i</button><span class="info-bubble" role="tooltip">${escapeHtml(limitsNote)}</span></span>`
-          : "";
-        return `
+        const button = `
         <button class="sub-tab${state.subtab === tab.id ? " active" : ""}" data-subtab="${tab.id}" type="button">
-          ${escapeHtml(tab.label)}${info}
+          ${escapeHtml(tab.label)}
         </button>`;
+        if (tab.id !== "limits") return button;
+        return `<span class="sub-tab-with-info">${button}${infoTipHtml(limitsNote)}</span>`;
       }).join("");
     }
 
@@ -2035,10 +2030,15 @@
       };
     }
 
+    function infoTipHtml(note) {
+      if (!note) return "";
+      return `<span class="info-tip"><button class="info-icon" type="button" aria-label="${escapeHtml(note)}">i</button><span class="info-bubble" role="tooltip">${escapeHtml(note)}</span></span>`;
+    }
+
     function limitNameHtml(row) {
       const { title, note } = splitLimitName(row.name);
       if (!note) return escapeHtml(title);
-      return `<span class="section-title">${escapeHtml(title)}<span class="info-tip"><button class="info-icon" type="button" aria-label="${escapeHtml(note)}">i</button><span class="info-bubble" role="tooltip">${escapeHtml(note)}</span></span></span>`;
+      return `<span class="section-title">${escapeHtml(title)}${infoTipHtml(note)}</span>`;
     }
 
     function renderTableRow(row, extraClass = "", options = {}) {
