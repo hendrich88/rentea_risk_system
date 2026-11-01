@@ -483,6 +483,30 @@
       min-width: 118px;
     }
 
+    .var-table tr.section td:nth-child(2) .section-title,
+    .var-table tr.section td:nth-child(3) .section-title {
+      justify-content: flex-end;
+    }
+
+    .var-table tr.section .info-bubble {
+      white-space: normal;
+      width: 260px;
+      max-width: min(280px, 70vw);
+      z-index: 90;
+    }
+
+    .var-table tr.section td:nth-child(3) .info-bubble {
+      left: auto;
+      right: 0;
+      transform: none;
+    }
+
+    .var-table tr.section td:nth-child(3) .info-bubble::before {
+      left: auto;
+      right: 14px;
+      transform: none;
+    }
+
     .heat-badge {
       display: inline-block;
       padding: 4px 10px;
@@ -1745,7 +1769,7 @@
       return `<span class="var-sum-badge" style="background:${colors.bg};border-color:${colors.border}">${escapeHtml(label)}</span>`;
     }
 
-    function renderVarSection(title, groupId, items, withHeat = false, invertHeat = false) {
+    function renderVarSection(title, groupId, items, withHeat = false, invertHeat = false, assetWord = "akcie") {
       const absRange = withHeat ? numericRange(items, "absolute") : null;
       const wtdRange = withHeat ? numericRange(items, "weighted") : null;
       const sectionOpen = isGroupOpen(groupId, true);
@@ -1755,11 +1779,13 @@
         if (!sectionOpen) sectionClasses.push("collapsed");
       }
       const groupAttr = items.length ? ` data-group="${escapeHtml(groupId)}"` : "";
+      const absNote = `Procentuální změna hodnoty dané ${assetWord}`;
+      const wtdNote = `Procentuální změna hodnoty dané ${assetWord} vážená jejím podílem na celkovém majetku fondu`;
       return [
         `<tr class="${sectionClasses.join(" ")}"${groupAttr}>
           <td><span class="chevron" aria-hidden="true"></span><span>${escapeHtml(title)}</span></td>
-          <td>Absolute</td>
-          <td>Weighted</td>
+          <td><span class="section-title">Absolute${infoTipHtml(absNote)}</span></td>
+          <td><span class="section-title">Weighted${infoTipHtml(wtdNote)}</span></td>
         </tr>`,
         ...items.map((item) => `
           <tr class="holding${sectionOpen ? "" : " hidden"}" data-parent="${escapeHtml(groupId)}"${sectionOpen ? "" : " hidden"}>
@@ -2216,7 +2242,7 @@
         </div>
         <div class="table-wrap">
           <table class="var-table">
-            <tbody>${renderVarSection(varSectionTitle("Akciový"), "equity_var", equityItems, true, true).join("")}</tbody>
+            <tbody>${renderVarSection(varSectionTitle("Akciový"), "equity_var", equityItems, true, true, "akcie").join("")}</tbody>
           </table>
         </div>
         <div class="date-bar var-mid-bar">
@@ -2229,7 +2255,7 @@
         </div>
         <div class="table-wrap">
           <table class="var-table">
-            <tbody>${renderVarSection(varSectionTitle("Měnový"), "fx_var", fxItems, true, true).join("")}</tbody>
+            <tbody>${renderVarSection(varSectionTitle("Měnový"), "fx_var", fxItems, true, true, "měny").join("")}</tbody>
           </table>
         </div>
       `;
@@ -2254,7 +2280,7 @@
         </div>
         <div class="table-wrap">
           <table class="var-table">
-            <tbody>${renderVarSection(stressSectionTitle(), "stress_test", items, true).join("")}</tbody>
+            <tbody>${renderVarSection(stressSectionTitle(), "stress_test", items, true, false, "akcie").join("")}</tbody>
           </table>
         </div>
         <div class="date-bar var-mid-bar">
@@ -2267,7 +2293,7 @@
         </div>
         <div class="table-wrap">
           <table class="var-table">
-            <tbody>${renderVarSection(stressSectionTitle("Měnový Stress Test"), "fx_stress_test", fxItems, true).join("")}</tbody>
+            <tbody>${renderVarSection(stressSectionTitle("Měnový Stress Test"), "fx_stress_test", fxItems, true, false, "měny").join("")}</tbody>
           </table>
         </div>
       `;
