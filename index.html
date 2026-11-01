@@ -42,16 +42,24 @@
       position: sticky;
       top: 0;
       z-index: 50;
-      background: var(--bg);
+      background: transparent;
       padding-top: 4px;
       margin-bottom: 0;
+    }
+
+    .top-chrome-inner {
+      background: var(--bg);
       transition: transform 0.28s ease;
       will-change: transform;
     }
 
-    .top-chrome.is-hidden {
+    .top-chrome.is-hidden .top-chrome-inner {
       transform: translateY(calc(-100% - 16px));
       pointer-events: none;
+    }
+
+    .chrome-spacer {
+      display: none;
     }
 
     .panel-head {
@@ -688,7 +696,7 @@
 
     @media (max-width: 820px) {
       html, body {
-        overflow-x: hidden;
+        overflow-x: clip;
       }
 
       .app {
@@ -723,12 +731,21 @@
       }
 
       .top-chrome {
+        position: fixed;
         top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        margin: 0;
         padding-top: max(4px, env(safe-area-inset-top, 0px));
-        margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
-        margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
         padding-left: max(16px, env(safe-area-inset-left, 0px));
         padding-right: max(16px, env(safe-area-inset-right, 0px));
+        background: var(--bg);
+      }
+
+      .chrome-spacer {
+        display: block;
+        height: 0;
       }
 
       .panel-head {
@@ -953,21 +970,24 @@
 <body>
   <div class="app" id="app">
     <div class="top-chrome" id="topChrome">
-      <header>
-        <h1>RISK MANAGEMENT SYSTEM FOR AN INVESTMENT COMPANY</h1>
-        <a class="linkedin-link" href="https://www.linkedin.com/in/ji%C5%99%C3%AD-hendrich-a4193ba0/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profil Jiří Hendrich">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path fill="currentColor" d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.23 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.46c.98 0 1.77-.77 1.77-1.73V1.73C24 .77 23.21 0 22.23 0z"/>
-          </svg>
-        </a>
-      </header>
+      <div class="top-chrome-inner">
+        <header>
+          <h1>RISK MANAGEMENT SYSTEM FOR AN INVESTMENT COMPANY</h1>
+          <a class="linkedin-link" href="https://www.linkedin.com/in/ji%C5%99%C3%AD-hendrich-a4193ba0/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profil Jiří Hendrich">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path fill="currentColor" d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.23 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.46c.98 0 1.77-.77 1.77-1.73V1.73C24 .77 23.21 0 22.23 0z"/>
+            </svg>
+          </a>
+        </header>
 
-      <div class="panel-head">
-        <nav class="main-tabs" id="mainTabs" aria-label="Typ fondu"></nav>
-        <nav class="sub-bar" id="subTabs" aria-label="Sekce"></nav>
-        <div class="toolbar" id="toolbar"></div>
+        <div class="panel-head">
+          <nav class="main-tabs" id="mainTabs" aria-label="Typ fondu"></nav>
+          <nav class="sub-bar" id="subTabs" aria-label="Sekce"></nav>
+          <div class="toolbar" id="toolbar"></div>
+        </div>
       </div>
     </div>
+    <div class="chrome-spacer" id="chromeSpacer" aria-hidden="true"></div>
 
     <section class="panel panel-body">
       <div class="content" id="content"></div>
@@ -2267,11 +2287,27 @@
       `;
     }
 
+    function isMobileChrome() {
+      return window.matchMedia("(max-width: 820px)").matches;
+    }
+
+    function layoutChromeSpacer() {
+      const spacer = document.getElementById("chromeSpacer");
+      const inner = document.querySelector(".top-chrome-inner");
+      if (!spacer || !inner) return;
+      if (!isMobileChrome()) {
+        spacer.style.height = "0px";
+        return;
+      }
+      spacer.style.height = chromeHidden ? "0px" : `${inner.offsetHeight}px`;
+    }
+
     function showTopChrome() {
       const chrome = document.getElementById("topChrome");
       if (!chrome) return;
       chrome.classList.remove("is-hidden");
       chromeHidden = false;
+      layoutChromeSpacer();
     }
 
     function syncToolbar() {
@@ -2295,30 +2331,37 @@
         content.innerHTML = renderPlaceholder(title, text);
         syncToolbar();
         showTopChrome();
+        requestAnimationFrame(layoutChromeSpacer);
         return;
       }
       if (state.subtab === "limits") {
         content.innerHTML = renderLimitsTable();
         syncToolbar();
         showTopChrome();
-        requestAnimationFrame(() => drawVisibleCharts(content));
+        requestAnimationFrame(() => {
+          layoutChromeSpacer();
+          drawVisibleCharts(content);
+        });
         return;
       }
       if (state.subtab === "var") {
         content.innerHTML = renderVarTable();
         syncToolbar();
         showTopChrome();
+        requestAnimationFrame(layoutChromeSpacer);
         return;
       }
       if (state.subtab === "stress") {
         content.innerHTML = renderStressTable();
         syncToolbar();
         showTopChrome();
+        requestAnimationFrame(layoutChromeSpacer);
         return;
       }
       content.innerHTML = renderPlaceholder("Stress Tests", "Modul stresových testů");
       syncToolbar();
       showTopChrome();
+      requestAnimationFrame(layoutChromeSpacer);
     }
 
     async function loadJsonArray(urls) {
@@ -2472,38 +2515,68 @@
     });
 
     let lastScrollY = window.scrollY || 0;
+    let lastTouchY = 0;
     let chromeHidden = false;
     let scrollTicking = false;
 
-    function updateChromeOnScroll() {
+    function currentScrollY() {
+      return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+    }
+
+    function setChromeHidden(hidden) {
       const chrome = document.getElementById("topChrome");
       if (!chrome) return;
-      const y = window.scrollY || document.documentElement.scrollTop || 0;
+      chrome.classList.toggle("is-hidden", hidden);
+      chromeHidden = hidden;
+      if (hidden) closeDatePicker();
+      layoutChromeSpacer();
+    }
+
+    function applyChromeDelta(delta, y) {
       if (y <= 16) {
-        chrome.classList.remove("is-hidden");
-        chromeHidden = false;
-        lastScrollY = y;
+        setChromeHidden(false);
         return;
       }
-      const delta = y - lastScrollY;
-      if (delta > 8 && !chromeHidden) {
-        chrome.classList.add("is-hidden");
-        chromeHidden = true;
-        closeDatePicker();
-      } else if (delta < -8 && chromeHidden) {
-        chrome.classList.remove("is-hidden");
-        chromeHidden = false;
-      }
+      if (delta > 6) setChromeHidden(true);
+      else if (delta < -6) setChromeHidden(false);
+    }
+
+    function updateChromeOnScroll() {
+      const y = currentScrollY();
+      applyChromeDelta(y - lastScrollY, y);
       lastScrollY = y;
     }
 
-    window.addEventListener("scroll", () => {
+    function onChromeScroll() {
       if (scrollTicking) return;
       scrollTicking = true;
       requestAnimationFrame(() => {
         updateChromeOnScroll();
         scrollTicking = false;
       });
+    }
+
+    window.addEventListener("scroll", onChromeScroll, { passive: true });
+    document.addEventListener("scroll", onChromeScroll, { passive: true, capture: true });
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("scroll", onChromeScroll, { passive: true });
+    }
+    window.addEventListener("resize", layoutChromeSpacer);
+    window.addEventListener("orientationchange", () => {
+      requestAnimationFrame(layoutChromeSpacer);
+    });
+    window.addEventListener("touchstart", (event) => {
+      if (!event.touches.length) return;
+      lastTouchY = event.touches[0].clientY;
+      lastScrollY = currentScrollY();
+    }, { passive: true });
+    window.addEventListener("touchmove", (event) => {
+      if (!event.touches.length) return;
+      const touchY = event.touches[0].clientY;
+      const y = currentScrollY();
+      applyChromeDelta(lastTouchY - touchY, y);
+      lastTouchY = touchY;
+      lastScrollY = y;
     }, { passive: true });
 
     (async function init() {
