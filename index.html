@@ -38,6 +38,45 @@
       padding: 32px 24px 64px;
     }
 
+    .top-chrome {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--bg);
+      padding-top: 4px;
+      transition: transform 0.28s ease;
+    }
+
+    .top-chrome.is-hidden {
+      transform: translateY(calc(-100% - 16px));
+      pointer-events: none;
+    }
+
+    .panel-head {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-bottom: 0;
+      border-radius: 20px 20px 0 0;
+    }
+
+    .panel-body {
+      border-radius: 0 0 20px 20px;
+      border-top: 0;
+    }
+
+    .toolbar {
+      background: var(--row);
+      padding: 12px 20px 4px;
+    }
+
+    .toolbar:empty {
+      display: none;
+    }
+
+    .toolbar .date-bar {
+      margin-bottom: 0;
+    }
+
     header {
       display: flex;
       align-items: center;
@@ -680,6 +719,26 @@
         border-radius: 14px;
       }
 
+      .top-chrome {
+        position: static;
+        transform: none !important;
+        pointer-events: auto;
+        background: transparent;
+        padding-top: 0;
+      }
+
+      .panel-head {
+        border-radius: 14px 14px 0 0;
+      }
+
+      .panel-body {
+        border-radius: 0 0 14px 14px;
+      }
+
+      .toolbar {
+        padding: 10px 10px 4px;
+      }
+
       .main-tabs {
         flex-wrap: wrap;
         overflow: visible;
@@ -889,18 +948,24 @@
 </head>
 <body>
   <div class="app" id="app">
-    <header>
-      <h1>RISK MANAGEMENT SYSTEM FOR AN INVESTMENT COMPANY</h1>
-      <a class="linkedin-link" href="https://www.linkedin.com/in/ji%C5%99%C3%AD-hendrich-a4193ba0/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profil Jiří Hendrich">
-        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path fill="currentColor" d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.23 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.46c.98 0 1.77-.77 1.77-1.73V1.73C24 .77 23.21 0 22.23 0z"/>
-        </svg>
-      </a>
-    </header>
+    <div class="top-chrome" id="topChrome">
+      <header>
+        <h1>RISK MANAGEMENT SYSTEM FOR AN INVESTMENT COMPANY</h1>
+        <a class="linkedin-link" href="https://www.linkedin.com/in/ji%C5%99%C3%AD-hendrich-a4193ba0/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profil Jiří Hendrich">
+          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="currentColor" d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.47-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.23 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.46c.98 0 1.77-.77 1.77-1.73V1.73C24 .77 23.21 0 22.23 0z"/>
+          </svg>
+        </a>
+      </header>
 
-    <section class="panel">
-      <nav class="main-tabs" id="mainTabs" aria-label="Typ fondu"></nav>
-      <nav class="sub-bar" id="subTabs" aria-label="Sekce"></nav>
+      <div class="panel-head">
+        <nav class="main-tabs" id="mainTabs" aria-label="Typ fondu"></nav>
+        <nav class="sub-bar" id="subTabs" aria-label="Sekce"></nav>
+        <div class="toolbar" id="toolbar"></div>
+      </div>
+    </div>
+
+    <section class="panel panel-body">
       <div class="content" id="content"></div>
     </section>
   </div>
@@ -2198,6 +2263,26 @@
       `;
     }
 
+    function isMobileLayout() {
+      return window.matchMedia("(max-width: 820px)").matches;
+    }
+
+    function showTopChrome() {
+      const chrome = document.getElementById("topChrome");
+      if (!chrome) return;
+      chrome.classList.remove("is-hidden");
+      chromeHidden = false;
+    }
+
+    function syncToolbar() {
+      const toolbar = document.getElementById("toolbar");
+      const content = document.getElementById("content");
+      if (!toolbar || !content) return;
+      const bar = content.querySelector(".date-bar:not(.var-mid-bar)");
+      toolbar.replaceChildren();
+      if (bar) toolbar.appendChild(bar);
+    }
+
     function renderContent() {
       const content = document.getElementById("content");
       if (state.fund !== "equity") {
@@ -2208,22 +2293,32 @@
         };
         const [title, text] = titles[state.subtab] || titles.limits;
         content.innerHTML = renderPlaceholder(title, text);
+        syncToolbar();
+        showTopChrome();
         return;
       }
       if (state.subtab === "limits") {
         content.innerHTML = renderLimitsTable();
+        syncToolbar();
+        showTopChrome();
         requestAnimationFrame(() => drawVisibleCharts(content));
         return;
       }
       if (state.subtab === "var") {
         content.innerHTML = renderVarTable();
+        syncToolbar();
+        showTopChrome();
         return;
       }
       if (state.subtab === "stress") {
         content.innerHTML = renderStressTable();
+        syncToolbar();
+        showTopChrome();
         return;
       }
       content.innerHTML = renderPlaceholder("Stress Tests", "Modul stresových testů");
+      syncToolbar();
+      showTopChrome();
     }
 
     async function loadJsonArray(urls) {
@@ -2375,6 +2470,46 @@
     document.addEventListener("keydown", (event) => {
       if (event.key === "Escape") closeDatePicker();
     });
+
+    let lastScrollY = window.scrollY || 0;
+    let chromeHidden = false;
+    let scrollTicking = false;
+
+    function updateChromeOnScroll() {
+      const chrome = document.getElementById("topChrome");
+      if (!chrome) return;
+      if (isMobileLayout()) {
+        chrome.classList.remove("is-hidden");
+        chromeHidden = false;
+        return;
+      }
+      const y = window.scrollY || document.documentElement.scrollTop || 0;
+      if (y <= 16) {
+        chrome.classList.remove("is-hidden");
+        chromeHidden = false;
+        lastScrollY = y;
+        return;
+      }
+      const delta = y - lastScrollY;
+      if (delta > 8 && !chromeHidden) {
+        chrome.classList.add("is-hidden");
+        chromeHidden = true;
+        closeDatePicker();
+      } else if (delta < -8 && chromeHidden) {
+        chrome.classList.remove("is-hidden");
+        chromeHidden = false;
+      }
+      lastScrollY = y;
+    }
+
+    window.addEventListener("scroll", () => {
+      if (scrollTicking) return;
+      scrollTicking = true;
+      requestAnimationFrame(() => {
+        updateChromeOnScroll();
+        scrollTicking = false;
+      });
+    }, { passive: true });
 
     (async function init() {
       renderTabs();
