@@ -778,17 +778,26 @@
         gap: 8px;
       }
 
+      header {
+        position: relative;
+      }
+
+      h1 .info-tip {
+        position: static;
+      }
+
       h1 .info-bubble {
-        left: auto;
-        right: 0;
-        transform: none;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
         width: min(300px, calc(100vw - 40px));
+        top: calc(100% + 6px);
       }
 
       h1 .info-bubble::before {
-        left: auto;
-        right: 10px;
-        transform: none;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
       }
 
       .linkedin-link {
