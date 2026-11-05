@@ -1295,11 +1295,12 @@
     }
 
     function pickerDateRange() {
-      const all = [...priceDates(), ...portfolioDates()].sort();
-      return {
-        minDate: all[0] || "",
-        maxDate: all[all.length - 1] || "",
-      };
+      const holdings = portfolioDates();
+      const prices = priceDates();
+      const dataStart = "2026-10-22";
+      const minDate = [dataStart, holdings[0] || dataStart].sort()[0];
+      const maxDate = [holdings[holdings.length - 1], prices[prices.length - 1]].filter(Boolean).sort().pop() || dataStart;
+      return { minDate, maxDate };
     }
 
     function formatDateCs(dateKey) {
