@@ -2567,6 +2567,7 @@
     document.getElementById("app").addEventListener("click", (event) => {
       const picker = event.target.closest(".date-picker");
       if (picker) {
+        event.stopPropagation();
         if (event.target.closest("#asOfDate")) {
           event.preventDefault();
           toggleDatePicker(picker);
@@ -2625,6 +2626,7 @@
     });
 
     document.addEventListener("click", (event) => {
+      if (!event.target.isConnected) return;
       if (!event.target.closest(".date-picker")) closeDatePicker();
     });
 
